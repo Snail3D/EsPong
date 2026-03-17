@@ -11,71 +11,79 @@
 <link rel="apple-touch-icon" href="/icon.svg">
 <title>JASIU PONG</title>
 <style>
+:root{--bg:#0a0a2e;--p1:#0ff;--p2:#f0f;--ball:#fff;--accent:#0ff;--accent2:#fc0;--line:rgba(0,255,255,0.2);--toast:#ff0;--overlay:rgba(10,10,46,0.97);--waitbg:rgba(10,10,46,0.95)}
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-html,body{width:100%;height:100%;overflow:hidden;background:#0a0a2e;font-family:'Courier New',monospace;color:#fff}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Courier New',monospace;color:#fff}
 canvas{display:block;width:100%;height:100%}
-#lobby{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;background:#0a0a2e}
+#lobby{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;background:var(--bg)}
 #lobby.hidden{display:none}
-#lobby h1{font-size:2.5em;color:#0ff;text-shadow:0 0 20px #0ff,0 0 40px #08f;margin-bottom:20px;letter-spacing:4px}
+#lobby h1{font-size:2.5em;color:var(--accent);text-shadow:0 0 20px var(--accent),0 0 40px var(--accent);margin-bottom:20px;letter-spacing:4px}
 #lobby .sub{font-size:1em;margin-bottom:30px;opacity:0.7}
 .btns{display:flex;gap:20px}
 .pbtn{font-size:1.5em;padding:30px 40px;border:3px solid;border-radius:16px;background:transparent;font-family:inherit;cursor:pointer}
-.pbtn.p1{color:#0ff;border-color:#0ff;text-shadow:0 0 10px #0ff}
-.pbtn.p2{color:#f0f;border-color:#f0f;text-shadow:0 0 10px #f0f}
-.pbtn.solo{color:#fc0;border-color:#fc0;text-shadow:0 0 10px #fc0}
+.pbtn.p1{color:var(--p1);border-color:var(--p1);text-shadow:0 0 10px var(--p1)}
+.pbtn.p2{color:var(--p2);border-color:var(--p2);text-shadow:0 0 10px var(--p2)}
+.pbtn.solo{color:var(--accent2);border-color:var(--accent2);text-shadow:0 0 10px var(--accent2)}
 .pbtn:active{transform:scale(0.95)}
 .pbtn.taken{opacity:0.3;pointer-events:none}
 #msg{margin-top:20px;font-size:1.1em;color:#0f0;min-height:1.5em}
-#wait{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:11;background:rgba(10,10,46,0.95)}
+#wait{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:11;background:var(--waitbg)}
 #wait.show{display:flex}
 #wait .status{color:#0f0;font-size:1.3em;animation:pulse 1.5s infinite}
 #waitSide{font-size:1.1em;margin-top:15px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .score{position:absolute;top:12px;width:100%;display:flex;justify-content:space-around;z-index:5;pointer-events:none}
-.score span{font-size:2.2em;color:#fff;text-shadow:0 0 10px #0ff;font-family:'Courier New',monospace}
-#toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3em;color:#ff0;text-shadow:0 0 30px #ff0;z-index:20;pointer-events:none;opacity:0;transition:opacity 0.3s;text-align:center;width:90%;max-width:500px}
+.score span{font-size:2.2em;color:#fff;text-shadow:0 0 10px var(--accent);font-family:'Courier New',monospace}
+#toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3em;color:var(--toast);text-shadow:0 0 30px var(--toast);z-index:20;pointer-events:none;opacity:0;transition:opacity 0.3s;text-align:center;width:90%;max-width:500px}
 #dbg{position:absolute;bottom:5px;left:5px;color:#555;font-size:9px;z-index:99;pointer-events:none}
 #settingsBtn{position:absolute;top:12px;right:12px;z-index:15;background:none;border:none;color:#fff;font-size:1.8em;cursor:pointer;opacity:0.5}
 #settingsBtn:hover{opacity:1}
-#coffeeLink{position:absolute;bottom:18px;z-index:15;color:#fc0;font-size:0.85em;opacity:0.5;text-decoration:none}
+#coffeeLink{position:absolute;bottom:18px;z-index:15;color:var(--accent2);font-size:0.85em;opacity:0.5;text-decoration:none}
 #coffeeLink:hover{opacity:1}
-.overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30;background:rgba(10,10,46,0.97)}
+.overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30;background:var(--overlay)}
 .overlay.show{display:flex}
-.overlay h2{color:#0ff;font-size:1.8em;margin-bottom:20px;text-shadow:0 0 10px #0ff}
+.overlay h2{color:var(--accent);font-size:1.8em;margin-bottom:20px;text-shadow:0 0 10px var(--accent)}
 #hsOverlay .hs-list{text-align:left;font-size:1.3em;margin-bottom:20px;line-height:2}
-#hsOverlay .hs-list .rank{color:#fc0}
-#hsOverlay .hs-list .name{color:#0ff}
+#hsOverlay .hs-list .rank{color:var(--accent2)}
+#hsOverlay .hs-list .name{color:var(--accent)}
 #hsOverlay .hs-list .sc{color:#fff}
 #initialsOverlay .init-slots{display:flex;gap:15px;margin-bottom:20px}
 .init-slot{display:flex;flex-direction:column;align-items:center;gap:8px}
-.init-slot .arr{font-size:2em;color:#0ff;cursor:pointer;line-height:1}
-.init-slot .letter{font-size:2.5em;color:#fc0;width:50px;text-align:center;border-bottom:3px solid #fc0}
+.init-slot .arr{font-size:2em;color:var(--accent);cursor:pointer;line-height:1}
+.init-slot .letter{font-size:2.5em;color:var(--accent2);width:50px;text-align:center;border-bottom:3px solid var(--accent2)}
 .okbtn{font-size:1.3em;padding:12px 40px;border:2px solid #0f0;border-radius:10px;background:transparent;color:#0f0;font-family:inherit;cursor:pointer}
 .okbtn:active{transform:scale(0.95)}
-.nochmal{font-size:1.2em;padding:12px 30px;border:2px solid #fc0;border-radius:10px;background:transparent;color:#fc0;font-family:inherit;cursor:pointer;margin-top:10px}
+.nochmal{font-size:1.2em;padding:12px 30px;border:2px solid var(--accent2);border-radius:10px;background:transparent;color:var(--accent2);font-family:inherit;cursor:pointer;margin-top:10px}
 .nochmal:active{transform:scale(0.95)}
-#wifiOverlay .wifi-info{margin-bottom:15px;font-size:1em;line-height:1.8;text-align:center}
-#wifiOverlay .wifi-info .label{color:#888}
-#wifiOverlay .wifi-info .val{color:#0f0}
-.wifi-btn{font-size:1em;padding:10px 25px;border:2px solid #0ff;border-radius:8px;background:transparent;color:#0ff;font-family:inherit;cursor:pointer;margin:5px}
+.wifi-info{margin-bottom:15px;font-size:1em;line-height:1.8;text-align:center}
+.wifi-info .label{color:#888}
+.wifi-info .val{color:#0f0}
+.wifi-btn{font-size:1em;padding:10px 25px;border:2px solid var(--accent);border-radius:8px;background:transparent;color:var(--accent);font-family:inherit;cursor:pointer;margin:5px}
 .wifi-btn:active{transform:scale(0.95)}
 .wifi-btn.danger{border-color:#f44;color:#f44}
 #networkList{max-height:200px;overflow-y:auto;width:80%;margin:10px auto;text-align:left}
 #networkList .net{padding:10px;border-bottom:1px solid #333;cursor:pointer;color:#fff}
 #networkList .net:active{background:#222}
 #networkList .net .rssi{float:right;color:#888;font-size:0.8em}
-#passInput{background:#111;border:2px solid #0ff;color:#fff;font-family:inherit;font-size:1.1em;padding:10px;border-radius:8px;width:80%;margin:10px auto;display:none;text-align:center}
+#passInput{background:#111;border:2px solid var(--accent);color:#fff;font-family:inherit;font-size:1.1em;padding:10px;border-radius:8px;width:80%;margin:10px auto;display:none;text-align:center}
 #wifiMsg{color:#0f0;font-size:0.9em;margin-top:10px;min-height:1.5em}
 .close-btn{position:absolute;top:15px;right:20px;font-size:1.5em;color:#fff;cursor:pointer;opacity:0.6}
 .close-btn:hover{opacity:1}
 .lang-row{display:flex;gap:8px;margin-bottom:20px;justify-content:center}
 .lang-btn{padding:6px 14px;border:2px solid #555;border-radius:6px;background:transparent;color:#888;font-family:inherit;font-size:0.9em;cursor:pointer}
-.lang-btn.active{border-color:#fc0;color:#fc0}
+.lang-btn.active{border-color:var(--accent2);color:var(--accent2)}
 .settings-section{border-top:1px solid #333;padding-top:15px;margin-top:15px;width:80%;text-align:center}
-.settings-section h3{color:#fc0;font-size:1em;margin-bottom:10px}
-#installBanner{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);z-index:15;background:rgba(0,255,255,0.1);border:2px solid #0ff;border-radius:12px;padding:12px 24px;display:none;align-items:center;gap:12px;cursor:pointer}
-#installBanner .inst-text{color:#0ff;font-size:0.9em}
+.settings-section h3{color:var(--accent2);font-size:1em;margin-bottom:10px}
+.theme-row{display:flex;gap:8px;margin-bottom:10px;justify-content:center;flex-wrap:wrap}
+.theme-btn{width:40px;height:40px;border:3px solid #555;border-radius:8px;cursor:pointer;position:relative;overflow:hidden}
+.theme-btn.active{border-color:#fff;box-shadow:0 0 8px #fff}
+.theme-btn .th-half{position:absolute;top:0;width:50%;height:100%}
+.theme-btn .th-left{left:0}
+.theme-btn .th-right{right:0}
+#installBanner{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);z-index:15;background:rgba(0,255,255,0.1);border:2px solid var(--accent);border-radius:12px;padding:12px 24px;display:none;align-items:center;gap:12px;cursor:pointer}
+#installBanner .inst-text{color:var(--accent);font-size:0.9em}
 #installBanner .inst-close{color:#888;font-size:1.2em;cursor:pointer;padding:0 4px}
+#settingsOverlay{overflow-y:auto}
 </style>
 </head>
 <body>
@@ -115,7 +123,7 @@ canvas{display:block;width:100%;height:100%}
 <!-- Initials Input -->
 <div class="overlay" id="initialsOverlay">
   <h2 id="initTitle"></h2>
-  <div style="font-size:1.5em;color:#fc0;margin-bottom:15px" id="yourScore"></div>
+  <div style="font-size:1.5em;color:var(--accent2);margin-bottom:15px" id="yourScore"></div>
   <div class="init-slots">
     <div class="init-slot">
       <div class="arr" onclick="cycleL(0,1)">&#9650;</div>
@@ -150,6 +158,10 @@ canvas{display:block;width:100%;height:100%}
     </div>
   </div>
   <div class="settings-section">
+    <h3 id="themeLabel"></h3>
+    <div class="theme-row" id="themeRow"></div>
+  </div>
+  <div class="settings-section">
     <h3>WiFi</h3>
     <div class="wifi-info" id="wifiInfo"></div>
     <div>
@@ -164,6 +176,48 @@ canvas{display:block;width:100%;height:100%}
 </div>
 
 <script>
+// === THEMES ===
+var THEMES = {
+  neon:    {name:'Neon',    bg:'#0a0a2e', p1:'#0ff',    p2:'#f0f',    ball:'#fff', accent:'#0ff',    accent2:'#fc0',   line:'rgba(0,255,255,0.2)',    toast:'#ff0',  fire:'#f80',  fireGlow:'#f60',  overlay:'rgba(10,10,46,0.97)',  waitbg:'rgba(10,10,46,0.95)'},
+  retro:   {name:'Retro',   bg:'#000000', p1:'#33ff33',  p2:'#33ff33',  ball:'#33ff33',accent:'#33ff33',  accent2:'#33ff33', line:'rgba(51,255,51,0.2)',    toast:'#33ff33',fire:'#ff0',  fireGlow:'#fa0',  overlay:'rgba(0,0,0,0.97)',     waitbg:'rgba(0,0,0,0.95)'},
+  sunset:  {name:'Sunset',  bg:'#1a0520', p1:'#ff6b35',  p2:'#ff1493',  ball:'#ffd700',accent:'#ff6b35',  accent2:'#ffd700', line:'rgba(255,107,53,0.2)',   toast:'#ffd700',fire:'#ff4500',fireGlow:'#ff2200',overlay:'rgba(26,5,32,0.97)',   waitbg:'rgba(26,5,32,0.95)'},
+  arctic:  {name:'Arctic',  bg:'#0a1628', p1:'#87ceeb',  p2:'#dda0dd',  ball:'#ffffff',accent:'#87ceeb',  accent2:'#e0e0ff', line:'rgba(135,206,235,0.2)',  toast:'#87ceeb',fire:'#4fc3f7',fireGlow:'#0288d1',overlay:'rgba(10,22,40,0.97)',  waitbg:'rgba(10,22,40,0.95)'},
+  lava:    {name:'Lava',    bg:'#1a0000', p1:'#ff4500',  p2:'#ffcc00',  ball:'#ff6600',accent:'#ff4500',  accent2:'#ffcc00', line:'rgba(255,69,0,0.2)',     toast:'#ffcc00',fire:'#ff0000',fireGlow:'#cc0000',overlay:'rgba(26,0,0,0.97)',    waitbg:'rgba(26,0,0,0.95)'}
+};
+var curTheme = 'neon';
+
+function setTheme(id){
+  if(!THEMES[id]) return;
+  curTheme = id;
+  var t = THEMES[id];
+  var r = document.documentElement.style;
+  r.setProperty('--bg', t.bg);
+  r.setProperty('--p1', t.p1);
+  r.setProperty('--p2', t.p2);
+  r.setProperty('--ball', t.ball);
+  r.setProperty('--accent', t.accent);
+  r.setProperty('--accent2', t.accent2);
+  r.setProperty('--line', t.line);
+  r.setProperty('--toast', t.toast);
+  r.setProperty('--overlay', t.overlay);
+  r.setProperty('--waitbg', t.waitbg);
+  document.querySelector('meta[name="theme-color"]').content = t.bg;
+  try { localStorage.setItem('pong_theme', id); } catch(e){}
+  renderThemeButtons();
+}
+
+function renderThemeButtons(){
+  var html = '';
+  for(var k in THEMES){
+    var t = THEMES[k];
+    html += '<div class="theme-btn' + (k===curTheme?' active':'') + '" onclick="setTheme(\'' + k + '\')" title="' + t.name + '">' +
+      '<div class="th-half th-left" style="background:' + t.p1 + '"></div>' +
+      '<div class="th-half th-right" style="background:' + t.p2 + '"></div>' +
+      '</div>';
+  }
+  document.getElementById('themeRow').innerHTML = html;
+}
+
 // === I18N ===
 var LANG = {
   en: {
@@ -192,6 +246,7 @@ var LANG = {
     noScores: 'No scores yet',
     settings: 'Settings',
     language: 'Language',
+    theme: 'Theme',
     scan: 'Scan',
     disconnect: 'Disconnect',
     connect: 'Connect',
@@ -220,7 +275,7 @@ var LANG = {
     connecting: 'Verbinde...',
     alreadyTaken: 'Schon vergeben! W\u00e4hle die andere Seite.',
     networkError: 'Netzwerk-Fehler! Nochmal versuchen.',
-    timeout: 'Zeitüberschreitung! Nochmal versuchen.',
+    timeout: 'Zeit\u00fcberschreitung! Nochmal versuchen.',
     opponentDc: 'Gegner weg...',
     gameOver: 'Vorbei! Punkte: ',
     pointRight: 'Punkt Rechts!',
@@ -233,6 +288,7 @@ var LANG = {
     noScores: 'Noch keine Scores',
     settings: 'Einstellungen',
     language: 'Sprache',
+    theme: 'Design',
     scan: 'Suchen',
     disconnect: 'Trennen',
     connect: 'Verbinden',
@@ -274,6 +330,7 @@ var LANG = {
     noScores: 'Brak wynik\u00f3w',
     settings: 'Ustawienia',
     language: 'J\u0119zyk',
+    theme: 'Motyw',
     scan: 'Skanuj',
     disconnect: 'Roz\u0142\u0105cz',
     connect: 'Po\u0142\u0105cz',
@@ -315,6 +372,7 @@ var LANG = {
     noScores: 'Sin puntuaciones',
     settings: 'Ajustes',
     language: 'Idioma',
+    theme: 'Tema',
     scan: 'Buscar',
     disconnect: 'Desconectar',
     connect: 'Conectar',
@@ -354,12 +412,12 @@ function applyLang(){
   document.getElementById('initTitle').textContent = T('newHighScore');
   document.getElementById('settingsTitle').textContent = T('settings');
   document.getElementById('langLabel').textContent = T('language');
+  document.getElementById('themeLabel').textContent = T('theme');
   document.getElementById('btnScan').textContent = T('scan');
   document.getElementById('disconnBtn').textContent = T('disconnect');
   document.getElementById('connBtn').textContent = T('connect');
   document.getElementById('passInput').placeholder = T('password');
   document.getElementById('coffeeLink').innerHTML = '&#9749; ' + T('coffee');
-  // highlight active lang button
   var btns = document.getElementById('langRow').children;
   for(var i = 0; i < btns.length; i++){
     btns[i].className = 'lang-btn' + (btns[i].textContent.toLowerCase() === curLang ? ' active' : '');
@@ -411,7 +469,8 @@ function pick(n){
       document.getElementById('lobby').style.display = 'none';
       document.getElementById('wait').style.display = 'flex';
       document.getElementById('waitText').textContent = T('waitingOpponent');
-      var sideColor = n === 1 ? '#0ff' : '#f0f';
+      var th = THEMES[curTheme];
+      var sideColor = n === 1 ? th.p1 : th.p2;
       var sideName = n === 1 ? T('left') : T('right');
       document.getElementById('waitSide').innerHTML = T('youPicked') + ' <span style="color:' + sideColor + ';text-shadow:0 0 10px ' + sideColor + '">' + sideName + '</span>';
       startPolling();
@@ -565,15 +624,16 @@ function checkWin(){
 
 function draw(){
   var w = window.innerWidth, h = window.innerHeight;
+  var th = THEMES[curTheme];
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#0a0a2e'; ctx.fillRect(0, 0, w, h);
-  ctx.setLineDash([8,8]); ctx.strokeStyle = 'rgba(0,255,255,0.2)'; ctx.lineWidth = 2;
+  ctx.fillStyle = th.bg; ctx.fillRect(0, 0, w, h);
+  ctx.setLineDash([8,8]); ctx.strokeStyle = th.line; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h); ctx.stroke(); ctx.setLineDash([]);
   if(!gameRunning) return;
   var pw = PW*w, ph = currentPH*h;
-  ctx.shadowColor = '#0ff'; ctx.shadowBlur = 15; ctx.fillStyle = '#0ff';
+  ctx.shadowColor = th.p1; ctx.shadowBlur = 15; ctx.fillStyle = th.p1;
   ctx.fillRect(0, paddles[0]*h - ph/2, pw, ph);
-  ctx.shadowColor = '#f0f'; ctx.fillStyle = '#f0f';
+  ctx.shadowColor = th.p2; ctx.fillStyle = th.p2;
   ctx.fillRect(w - pw, paddles[1]*h - ph/2, pw, ph);
   ctx.shadowBlur = 0;
   var bx = ball.x*w, by = ball.y*h, br = BR * Math.min(w,h);
@@ -582,14 +642,14 @@ function draw(){
     for(var i = 0; i < trail.length; i++){
       var t = trail[i], a = 1 - t.age/12;
       ctx.globalAlpha = a * 0.6;
-      ctx.fillStyle = 'rgb(' + (255) + ',' + Math.floor(80 + Math.random()*40) + ',0)';
+      ctx.fillStyle = th.fire;
       ctx.beginPath(); ctx.arc(t.x*w, t.y*h, br*(1 - t.age/20), 0, Math.PI*2); ctx.fill();
     }
     ctx.globalAlpha = 1;
-    ctx.shadowColor = '#f60'; ctx.shadowBlur = 30; ctx.fillStyle = '#f80';
+    ctx.shadowColor = th.fireGlow; ctx.shadowBlur = 30; ctx.fillStyle = th.fire;
     ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
   } else {
-    ctx.shadowColor = '#fff'; ctx.shadowBlur = 20; ctx.fillStyle = '#fff';
+    ctx.shadowColor = th.ball; ctx.shadowBlur = 20; ctx.fillStyle = th.ball;
     ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
   }
 }
@@ -716,6 +776,7 @@ function openSettings(){
   document.getElementById('connBtn').style.display = 'none';
   document.getElementById('wifiMsg').textContent = '';
   selectedSSID = '';
+  renderThemeButtons();
   refreshWifiStatus();
 }
 
@@ -837,6 +898,8 @@ if('serviceWorker' in navigator){
 
 // === INIT ===
 try { var saved = localStorage.getItem('pong_lang'); if(saved && LANG[saved]) curLang = saved; } catch(e){}
+try { var st = localStorage.getItem('pong_theme'); if(st && THEMES[st]) curTheme = st; } catch(e){}
+setTheme(curTheme);
 applyLang();
 loop();
 </script>
