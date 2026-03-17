@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>JASIU PONG</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a2e;font-family:'Courier New',monospace;color:#fff}
+canvas{display:block;width:100%;height:100%}
+#lobby{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;background:#0a0a2e}
+#lobby.hidden{display:none}
+#lobby h1{font-size:2.5em;color:#0ff;text-shadow:0 0 20px #0ff,0 0 40px #08f;margin-bottom:20px;letter-spacing:4px}
+#lobby .sub{font-size:1em;margin-bottom:30px;opacity:0.7}
+.btns{display:flex;gap:20px}
+.pbtn{font-size:1.5em;padding:30px 40px;border:3px solid;border-radius:16px;background:transparent;font-family:inherit;cursor:pointer}
+.pbtn.p1{color:#0ff;border-color:#0ff;text-shadow:0 0 10px #0ff}
+.pbtn.p2{color:#f0f;border-color:#f0f;text-shadow:0 0 10px #f0f}
+.pbtn.solo{color:#fc0;border-color:#fc0;text-shadow:0 0 10px #fc0}
+.pbtn:active{transform:scale(0.95)}
+.pbtn.taken{opacity:0.3;pointer-events:none}
+#msg{margin-top:20px;font-size:1.1em;color:#0f0;min-height:1.5em}
+#wait{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:11;background:rgba(10,10,46,0.95)}
+#wait.show{display:flex}
+#wait .status{color:#0f0;font-size:1.3em;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.score{position:absolute;top:12px;width:100%;display:flex;justify-content:space-around;z-index:5;pointer-events:none}
+.score span{font-size:2.2em;color:#fff;text-shadow:0 0 10px #0ff;font-family:'Courier New',monospace}
+#toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3em;color:#ff0;text-shadow:0 0 30px #ff0;z-index:20;pointer-events:none;opacity:0;transition:opacity 0.3s}
+#dbg{position:absolute;bottom:5px;left:5px;color:#555;font-size:9px;z-index:99;pointer-events:none}
+/* Settings gear */
+#settingsBtn{position:absolute;top:12px;right:12px;z-index:15;background:none;border:none;color:#fff;font-size:1.8em;cursor:pointer;opacity:0.5}
+#settingsBtn:hover{opacity:1}
+/* Overlay base */
+.overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30;background:rgba(10,10,46,0.97)}
+.overlay.show{display:flex}
+.overlay h2{color:#0ff;font-size:1.8em;margin-bottom:20px;text-shadow:0 0 10px #0ff}
+/* High score overlay */
+#hsOverlay .hs-list{text-align:left;font-size:1.3em;margin-bottom:20px;line-height:2}
+#hsOverlay .hs-list .rank{color:#fc0}
+#hsOverlay .hs-list .name{color:#0ff}
+#hsOverlay .hs-list .sc{color:#fff}
+/* Initials input */
+#initialsOverlay .init-slots{display:flex;gap:15px;margin-bottom:20px}
+.init-slot{display:flex;flex-direction:column;align-items:center;gap:8px}
+.init-slot .arr{font-size:2em;color:#0ff;cursor:pointer;line-height:1}
+.init-slot .letter{font-size:2.5em;color:#fc0;width:50px;text-align:center;border-bottom:3px solid #fc0}
+.okbtn{font-size:1.3em;padding:12px 40px;border:2px solid #0f0;border-radius:10px;background:transparent;color:#0f0;font-family:inherit;cursor:pointer}
+.okbtn:active{transform:scale(0.95)}
+.nochmal{font-size:1.2em;padding:12px 30px;border:2px solid #fc0;border-radius:10px;background:transparent;color:#fc0;font-family:inherit;cursor:pointer;margin-top:10px}
+.nochmal:active{transform:scale(0.95)}
+/* WiFi settings */
+#wifiOverlay .wifi-info{margin-bottom:15px;font-size:1em;line-height:1.8;text-align:center}
+#wifiOverlay .wifi-info .label{color:#888}
+#wifiOverlay .wifi-info .val{color:#0f0}
+.wifi-btn{font-size:1em;padding:10px 25px;border:2px solid #0ff;border-radius:8px;background:transparent;color:#0ff;font-family:inherit;cursor:pointer;margin:5px}
+.wifi-btn:active{transform:scale(0.95)}
+.wifi-btn.danger{border-color:#f44;color:#f44}
+#networkList{max-height:200px;overflow-y:auto;width:80%;margin:10px auto;text-align:left}
+#networkList .net{padding:10px;border-bottom:1px solid #333;cursor:pointer;color:#fff}
+#networkList .net:active{background:#222}
+#networkList .net .rssi{float:right;color:#888;font-size:0.8em}
+#passInput{background:#111;border:2px solid #0ff;color:#fff;font-family:inherit;font-size:1.1em;padding:10px;border-radius:8px;width:80%;margin:10px auto;display:none;text-align:center}
+#wifiMsg{color:#0f0;font-size:0.9em;margin-top:10px;min-height:1.5em}
+.close-btn{position:absolute;top:15px;right:20px;font-size:1.5em;color:#fff;cursor:pointer;opacity:0.6}
+.close-btn:hover{opacity:1}
+</style>
+</head>
+<body>
+<div id="lobby">
+  <h1>JASIU PONG</h1>
+  <div class="sub">Wähle deine Seite!</div>
+  <div class="btns">
+    <button class="pbtn p1" id="btn1" onclick="pick(1)">Links</button>
+    <button class="pbtn p2" id="btn2" onclick="pick(2)">Rechts</button>
+    <button class="pbtn solo" onclick="startSolo()">Solo</button>
+  </div>
+  <div id="msg"></div>
+  <button id="settingsBtn" onclick="openWifi()">&#9881;</button>
+</div>
+<div id="wait"><div class="status" id="waitText">Warte auf Gegner...</div></div>
+<div class="score"><span id="s1">0</span><span id="s2">0</span></div>
+<div id="toast"></div>
+<div id="dbg"></div>
+<canvas id="c"></canvas>
+
+<!-- High Score Leaderboard -->
+<div class="overlay" id="hsOverlay">
+  <h2>HIGH SCORES</h2>
+  <div class="hs-list" id="hsList"></div>
+  <button class="nochmal" onclick="replaySolo()">Nochmal</button>
+</div>
+
+<!-- Initials Input -->
+<div class="overlay" id="initialsOverlay">
+  <h2>NEUER HIGH SCORE!</h2>
+  <div style="font-size:1.5em;color:#fc0;margin-bottom:15px" id="yourScore"></div>
+  <div class="init-slots">
+    <div class="init-slot">
+      <div class="arr" onclick="cycleL(0,1)">&#9650;</div>
+      <div class="letter" id="L0">A</div>
+      <div class="arr" onclick="cycleL(0,-1)">&#9660;</div>
+    </div>
+    <div class="init-slot">
+      <div class="arr" onclick="cycleL(1,1)">&#9650;</div>
+      <div class="letter" id="L1">A</div>
+      <div class="arr" onclick="cycleL(1,-1)">&#9660;</div>
+    </div>
+    <div class="init-slot">
+      <div class="arr" onclick="cycleL(2,1)">&#9650;</div>
+      <div class="letter" id="L2">A</div>
+      <div class="arr" onclick="cycleL(2,-1)">&#9660;</div>
+    </div>
+  </div>
+  <button class="okbtn" onclick="submitInitials()">OK</button>
+</div>
+
+<!-- WiFi Settings -->
+<div class="overlay" id="wifiOverlay">
+  <span class="close-btn" onclick="closeWifi()">&times;</span>
+  <h2>WiFi</h2>
+  <div class="wifi-info" id="wifiInfo"></div>
+  <div>
+    <button class="wifi-btn" onclick="wifiScan()">Scan</button>
+    <button class="wifi-btn danger" id="disconnBtn" onclick="wifiDisconnect()" style="display:none">Disconnect</button>
+  </div>
+  <div id="networkList"></div>
+  <input type="password" id="passInput" placeholder="Passwort">
+  <button class="wifi-btn" id="connBtn" onclick="wifiConnect()" style="display:none">Verbinden</button>
+  <div id="wifiMsg"></div>
+</div>
+
+<script>
+var WINH = 7, PH = 0.22, PW = 0.03, BR = 0.015, BS = 0.005;
+var canvas = document.getElementById('c');
+var ctx = canvas.getContext('2d');
+var myPlayer = 0, gameRunning = false, totalPlayers = 0;
+var paddles = [0.5, 0.5], myPaddle = 0.5;
+var ball = {x:0.5, y:0.5, vx:0.004, vy:0.003};
+var scores = [0, 0];
+var pollOk = 0, pollFail = 0;
+var hitCount = 0, fireBoosted = false, currentPH = PH;
+var trail = [];
+var soloScore = 0, soloGameOver = false;
+
+function resize(){
+  canvas.width = window.innerWidth * devicePixelRatio;
+  canvas.height = window.innerHeight * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+function pick(n){
+  document.getElementById('msg').textContent = 'Verbinde...';
+  var x = new XMLHttpRequest();
+  x.open('GET', '/claim?p=' + n, true);
+  x.timeout = 3000;
+  x.onload = function(){
+    if(x.responseText === 'ok'){
+      myPlayer = n;
+      document.getElementById('lobby').style.display = 'none';
+      document.getElementById('wait').style.display = 'flex';
+      startPolling();
+    } else {
+      document.getElementById('msg').textContent = 'Schon vergeben! Wähle die andere Seite.';
+      document.getElementById('btn' + n).classList.add('taken');
+    }
+  };
+  x.onerror = function(){ document.getElementById('msg').textContent = 'Netzwerk-Fehler! Nochmal versuchen.'; };
+  x.ontimeout = function(){ document.getElementById('msg').textContent = 'Timeout! Nochmal versuchen.'; };
+  x.send();
+}
+
+function startSolo(){
+  myPlayer = 3;
+  gameRunning = true;
+  soloGameOver = false;
+  soloScore = 0;
+  scores = [0, 0]; resetBall(); updateScoreDisplay();
+  document.getElementById('lobby').style.display = 'none';
+}
+
+function startPolling(){
+  setInterval(function(){
+    var url = '/s?p=' + myPlayer + '&y=' + myPaddle.toFixed(3);
+    if(myPlayer === 1 && gameRunning){
+      url += '&bx=' + ball.x.toFixed(4) + '&by=' + ball.y.toFixed(4);
+      url += '&bvx=' + ball.vx.toFixed(5) + '&bvy=' + ball.vy.toFixed(5);
+      url += '&s1=' + scores[0] + '&s2=' + scores[1];
+    }
+    url += '&t=' + Date.now();
+    var x = new XMLHttpRequest();
+    x.open('GET', url, true);
+    x.timeout = 2000;
+    x.onload = function(){
+      pollOk++;
+      var raw = x.responseText;
+      var parts = raw.split(',');
+      try {
+        if(myPlayer === 1) paddles[1] = parseFloat(parts[2]);
+        else paddles[0] = parseFloat(parts[1]);
+        var bothIn = parseInt(parts[3]) === 1 && parseInt(parts[4]) === 1;
+
+        if(myPlayer === 2 && gameRunning){
+          ball.x = parseFloat(parts[5]);
+          ball.y = parseFloat(parts[6]);
+          ball.vx = parseFloat(parts[7]);
+          ball.vy = parseFloat(parts[8]);
+          scores[0] = parseInt(parts[9]);
+          scores[1] = parseInt(parts[10]);
+          updateScoreDisplay();
+        }
+
+        if(bothIn && !gameRunning){
+          gameRunning = true;
+          scores = [0, 0]; resetBall(); updateScoreDisplay();
+          document.getElementById('wait').style.display = 'none';
+          document.getElementById('lobby').style.display = 'none';
+        }
+        if(!bothIn && gameRunning){
+          gameRunning = false;
+          document.getElementById('wait').style.display = 'flex';
+          document.getElementById('waitText').textContent = 'Gegner weg...';
+        }
+      } catch(e){}
+    };
+    x.onerror = function(){};
+    x.ontimeout = function(){};
+    x.send();
+  }, 80);
+}
+
+function resetBall(){
+  ball.x = 0.5; ball.y = 0.5;
+  var a = (Math.random() - 0.5) * 1.2;
+  var d = Math.random() > 0.5 ? 1 : -1;
+  ball.vx = Math.cos(a) * BS * d;
+  ball.vy = Math.sin(a) * BS;
+  hitCount = 0; fireBoosted = false; currentPH = PH; trail = [];
+}
+
+function onPaddleHit(){
+  hitCount++;
+  soloScore = hitCount;
+  updateScoreDisplay();
+  if(hitCount % 5 === 0){
+    currentPH = Math.max(PH * 0.5, currentPH * 0.95);
+  }
+  if(hitCount >= 10 && !fireBoosted){
+    fireBoosted = true;
+    ball.vx *= 1.3; ball.vy *= 1.3;
+  }
+}
+
+function soloMiss(){
+  if(soloGameOver) return;
+  soloGameOver = true;
+  gameRunning = false;
+  showToast('Game Over! Score: ' + soloScore);
+  setTimeout(function(){
+    fetchHighScores(function(hs){
+      if(hs.length < 5 || soloScore > hs[hs.length - 1].score){
+        showInitials(soloScore);
+      } else {
+        showLeaderboard(hs);
+      }
+    });
+  }, 1500);
+}
+
+function physics(){
+  if(!gameRunning || (myPlayer !== 1 && myPlayer !== 3)) return;
+  if(gameRunning && hitCount >= 10){ trail.push({x:ball.x, y:ball.y, age:0}); }
+  for(var i = trail.length - 1; i >= 0; i--){ trail[i].age++; if(trail[i].age > 12) trail.splice(i, 1); }
+  ball.x += ball.vx; ball.y += ball.vy;
+  if(ball.y - BR < 0){ ball.y = BR; ball.vy = Math.abs(ball.vy); }
+  if(ball.y + BR > 1){ ball.y = 1 - BR; ball.vy = -Math.abs(ball.vy); }
+  if(ball.x - BR < PW && ball.vx < 0){
+    if(ball.y > paddles[0] - currentPH/2 && ball.y < paddles[0] + currentPH/2){
+      ball.x = PW + BR; ball.vx = Math.abs(ball.vx) + 0.0003;
+      ball.vy += ((ball.y - paddles[0]) / (currentPH/2)) * 0.002;
+      onPaddleHit();
+    }
+  }
+  if(ball.x + BR > 1 - PW && ball.vx > 0){
+    if(ball.y > paddles[1] - currentPH/2 && ball.y < paddles[1] + currentPH/2){
+      ball.x = 1 - PW - BR; ball.vx = -(Math.abs(ball.vx) + 0.0003);
+      ball.vy += ((ball.y - paddles[1]) / (currentPH/2)) * 0.002;
+      onPaddleHit();
+    }
+  }
+  // Solo mode: miss = game over
+  if(myPlayer === 3){
+    if(ball.x < -0.05 || ball.x > 1.05){
+      soloMiss();
+    }
+  } else {
+    if(ball.x < -0.05){ scores[1]++; updateScoreDisplay(); showToast('Punkt Rechts!'); checkWin() || resetBall(); }
+    if(ball.x > 1.05){ scores[0]++; updateScoreDisplay(); showToast('Punkt Links!'); checkWin() || resetBall(); }
+  }
+}
+
+function checkWin(){
+  for(var i = 0; i < 2; i++){
+    if(scores[i] >= WINH){
+      gameRunning = false;
+      showToast(i+1 === myPlayer ? 'GEWONNEN!' : 'Verloren!');
+      setTimeout(function(){ if(totalPlayers >= 2){ scores=[0,0]; resetBall(); gameRunning=true; updateScoreDisplay(); } }, 3000);
+      return true;
+    }
+  }
+  return false;
+}
+
+function draw(){
+  var w = window.innerWidth, h = window.innerHeight;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#0a0a2e'; ctx.fillRect(0, 0, w, h);
+  ctx.setLineDash([8,8]); ctx.strokeStyle = 'rgba(0,255,255,0.2)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h); ctx.stroke(); ctx.setLineDash([]);
+  if(!gameRunning) return;
+  var pw = PW*w, ph = currentPH*h;
+  ctx.shadowColor = '#0ff'; ctx.shadowBlur = 15; ctx.fillStyle = '#0ff';
+  ctx.fillRect(0, paddles[0]*h - ph/2, pw, ph);
+  ctx.shadowColor = '#f0f'; ctx.fillStyle = '#f0f';
+  ctx.fillRect(w - pw, paddles[1]*h - ph/2, pw, ph);
+  ctx.shadowBlur = 0;
+  var bx = ball.x*w, by = ball.y*h, br = BR * Math.min(w,h);
+  var onFire = hitCount >= 10;
+  if(onFire){
+    for(var i = 0; i < trail.length; i++){
+      var t = trail[i], a = 1 - t.age/12;
+      ctx.globalAlpha = a * 0.6;
+      ctx.fillStyle = 'rgb(' + (255) + ',' + Math.floor(80 + Math.random()*40) + ',0)';
+      ctx.beginPath(); ctx.arc(t.x*w, t.y*h, br*(1 - t.age/20), 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowColor = '#f60'; ctx.shadowBlur = 30; ctx.fillStyle = '#f80';
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  } else {
+    ctx.shadowColor = '#fff'; ctx.shadowBlur = 20; ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  }
+}
+
+function loop(){ physics(); draw(); requestAnimationFrame(loop); }
+
+canvas.addEventListener('touchmove', function(e){
+  e.preventDefault();
+  if(!gameRunning || !myPlayer) return;
+  if(myPlayer === 3){
+    for(var i = 0; i < e.touches.length; i++){
+      var tx = e.touches[i].clientX, ty = e.touches[i].clientY / window.innerHeight;
+      ty = Math.max(currentPH/2, Math.min(1 - currentPH/2, ty));
+      if(tx < window.innerWidth / 2) paddles[0] = ty;
+      else paddles[1] = ty;
+    }
+  } else {
+    var y = e.touches[0].clientY / window.innerHeight;
+    y = Math.max(currentPH/2, Math.min(1 - currentPH/2, y));
+    paddles[myPlayer - 1] = y; myPaddle = y;
+  }
+}, {passive:false});
+canvas.addEventListener('touchstart', function(e){ e.preventDefault(); }, {passive:false});
+canvas.addEventListener('mousemove', function(e){
+  if(!gameRunning || !myPlayer) return;
+  var y = e.clientY / window.innerHeight;
+  y = Math.max(currentPH/2, Math.min(1 - currentPH/2, y));
+  if(myPlayer === 3){
+    if(e.clientX < window.innerWidth / 2) paddles[0] = y;
+    else paddles[1] = y;
+  } else {
+    paddles[myPlayer - 1] = y; myPaddle = y;
+  }
+});
+
+function updateScoreDisplay(){
+  if(myPlayer === 3){
+    document.getElementById('s1').textContent = soloScore;
+    document.getElementById('s2').textContent = '';
+  } else {
+    document.getElementById('s1').textContent = scores[0];
+    document.getElementById('s2').textContent = scores[1];
+  }
+}
+function showToast(t){ var e = document.getElementById('toast'); e.textContent = t; e.style.opacity = '1'; setTimeout(function(){ e.style.opacity = '0'; }, 1200); }
+
+// === HIGH SCORES ===
+var initLetters = [0, 0, 0]; // A=0
+var pendingScore = 0;
+
+function fetchHighScores(cb){
+  var x = new XMLHttpRequest();
+  x.open('GET', '/api/highscores', true);
+  x.timeout = 3000;
+  x.onload = function(){
+    try { cb(JSON.parse(x.responseText)); } catch(e){ cb([]); }
+  };
+  x.onerror = function(){ cb([]); };
+  x.send();
+}
+
+function showInitials(score){
+  pendingScore = score;
+  initLetters = [0, 0, 0];
+  document.getElementById('L0').textContent = 'A';
+  document.getElementById('L1').textContent = 'A';
+  document.getElementById('L2').textContent = 'A';
+  document.getElementById('yourScore').textContent = 'Score: ' + score;
+  document.getElementById('initialsOverlay').style.display = 'flex';
+}
+
+function cycleL(idx, dir){
+  initLetters[idx] = (initLetters[idx] + dir + 26) % 26;
+  document.getElementById('L' + idx).textContent = String.fromCharCode(65 + initLetters[idx]);
+}
+
+function submitInitials(){
+  var name = String.fromCharCode(65 + initLetters[0]) + String.fromCharCode(65 + initLetters[1]) + String.fromCharCode(65 + initLetters[2]);
+  var x = new XMLHttpRequest();
+  x.open('POST', '/api/highscore', true);
+  x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  x.timeout = 3000;
+  x.onload = function(){
+    document.getElementById('initialsOverlay').style.display = 'none';
+    fetchHighScores(function(hs){ showLeaderboard(hs); });
+  };
+  x.onerror = function(){
+    document.getElementById('initialsOverlay').style.display = 'none';
+    fetchHighScores(function(hs){ showLeaderboard(hs); });
+  };
+  x.send('name=' + name + '&score=' + pendingScore);
+}
+
+function showLeaderboard(hs){
+  var html = '';
+  for(var i = 0; i < hs.length; i++){
+    html += '<div><span class="rank">#' + (i+1) + '</span> <span class="name">' + hs[i].name + '</span> <span class="sc">' + hs[i].score + '</span></div>';
+  }
+  if(hs.length === 0) html = '<div style="color:#888">Noch keine Scores</div>';
+  document.getElementById('hsList').innerHTML = html;
+  document.getElementById('hsOverlay').style.display = 'flex';
+}
+
+function replaySolo(){
+  document.getElementById('hsOverlay').style.display = 'none';
+  soloGameOver = false;
+  soloScore = 0;
+  scores = [0, 0];
+  resetBall();
+  updateScoreDisplay();
+  gameRunning = true;
+}
+
+// === WIFI SETTINGS ===
+var selectedSSID = '';
+
+function openWifi(){
+  document.getElementById('wifiOverlay').style.display = 'flex';
+  document.getElementById('networkList').innerHTML = '';
+  document.getElementById('passInput').style.display = 'none';
+  document.getElementById('connBtn').style.display = 'none';
+  document.getElementById('wifiMsg').textContent = '';
+  selectedSSID = '';
+  refreshWifiStatus();
+}
+
+function closeWifi(){
+  document.getElementById('wifiOverlay').style.display = 'none';
+}
+
+function refreshWifiStatus(){
+  var x = new XMLHttpRequest();
+  x.open('GET', '/api/wifi/status', true);
+  x.timeout = 3000;
+  x.onload = function(){
+    try {
+      var s = JSON.parse(x.responseText);
+      var html = '<div><span class="label">AP IP: </span><span class="val">' + s.apIp + '</span></div>';
+      if(s.connected){
+        html += '<div><span class="label">WiFi: </span><span class="val">' + s.ssid + '</span></div>';
+        html += '<div><span class="label">STA IP: </span><span class="val">' + s.ip + '</span></div>';
+        document.getElementById('disconnBtn').style.display = '';
+      } else {
+        html += '<div><span class="label">WiFi: </span><span style="color:#f44">nicht verbunden</span></div>';
+        document.getElementById('disconnBtn').style.display = 'none';
+      }
+      document.getElementById('wifiInfo').innerHTML = html;
+    } catch(e){}
+  };
+  x.send();
+}
+
+function wifiScan(){
+  document.getElementById('wifiMsg').textContent = 'Scanne...';
+  document.getElementById('networkList').innerHTML = '';
+  var x = new XMLHttpRequest();
+  x.open('GET', '/api/wifi/scan', true);
+  x.timeout = 15000;
+  x.onload = function(){
+    document.getElementById('wifiMsg').textContent = '';
+    try {
+      var nets = JSON.parse(x.responseText);
+      var html = '';
+      for(var i = 0; i < nets.length; i++){
+        html += '<div class="net" onclick="selectNet(\'' + nets[i].ssid.replace(/'/g,"\\'") + '\',' + nets[i].open + ')">' +
+          nets[i].ssid + '<span class="rssi">' + nets[i].rssi + ' dBm</span></div>';
+      }
+      if(nets.length === 0) html = '<div style="color:#888;padding:10px">Keine Netzwerke gefunden</div>';
+      document.getElementById('networkList').innerHTML = html;
+    } catch(e){ document.getElementById('wifiMsg').textContent = 'Scan Fehler'; }
+  };
+  x.onerror = function(){ document.getElementById('wifiMsg').textContent = 'Scan Fehler'; };
+  x.send();
+}
+
+function selectNet(ssid, open){
+  selectedSSID = ssid;
+  document.getElementById('wifiMsg').textContent = 'Netzwerk: ' + ssid;
+  if(open){
+    document.getElementById('passInput').style.display = 'none';
+  } else {
+    document.getElementById('passInput').style.display = 'block';
+    document.getElementById('passInput').value = '';
+  }
+  document.getElementById('connBtn').style.display = '';
+}
+
+function wifiConnect(){
+  if(!selectedSSID) return;
+  var pass = document.getElementById('passInput').value;
+  document.getElementById('wifiMsg').textContent = 'Verbinde...';
+  document.getElementById('connBtn').style.display = 'none';
+  var x = new XMLHttpRequest();
+  x.open('POST', '/api/wifi/connect', true);
+  x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  x.timeout = 15000;
+  x.onload = function(){
+    if(x.responseText === 'ok'){
+      document.getElementById('wifiMsg').textContent = 'Verbunden!';
+      document.getElementById('passInput').style.display = 'none';
+      document.getElementById('networkList').innerHTML = '';
+      refreshWifiStatus();
+    } else {
+      document.getElementById('wifiMsg').textContent = 'Verbindung fehlgeschlagen';
+      document.getElementById('connBtn').style.display = '';
+    }
+  };
+  x.onerror = function(){
+    document.getElementById('wifiMsg').textContent = 'Fehler';
+    document.getElementById('connBtn').style.display = '';
+  };
+  x.send('ssid=' + encodeURIComponent(selectedSSID) + '&pass=' + encodeURIComponent(pass));
+}
+
+function wifiDisconnect(){
+  var x = new XMLHttpRequest();
+  x.open('POST', '/api/wifi/disconnect', true);
+  x.timeout = 3000;
+  x.onload = function(){ refreshWifiStatus(); document.getElementById('wifiMsg').textContent = 'Getrennt'; };
+  x.send();
+}
+
+loop();
+</script>
+</body>
+</html>

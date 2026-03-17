@@ -1,0 +1,8 @@
+.pio/
+.vscode/
+.claude/
+src/web_content.h
+*.swp
+*.swo
+*~
+.DS_Store
