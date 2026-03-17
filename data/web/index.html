@@ -23,26 +23,23 @@ canvas{display:block;width:100%;height:100%}
 #wait{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:11;background:rgba(10,10,46,0.95)}
 #wait.show{display:flex}
 #wait .status{color:#0f0;font-size:1.3em;animation:pulse 1.5s infinite}
+#waitSide{font-size:1.1em;margin-top:15px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .score{position:absolute;top:12px;width:100%;display:flex;justify-content:space-around;z-index:5;pointer-events:none}
 .score span{font-size:2.2em;color:#fff;text-shadow:0 0 10px #0ff;font-family:'Courier New',monospace}
 #toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3em;color:#ff0;text-shadow:0 0 30px #ff0;z-index:20;pointer-events:none;opacity:0;transition:opacity 0.3s}
 #dbg{position:absolute;bottom:5px;left:5px;color:#555;font-size:9px;z-index:99;pointer-events:none}
-/* Settings gear */
 #settingsBtn{position:absolute;top:12px;right:12px;z-index:15;background:none;border:none;color:#fff;font-size:1.8em;cursor:pointer;opacity:0.5}
 #settingsBtn:hover{opacity:1}
 #coffeeLink{position:absolute;bottom:18px;z-index:15;color:#fc0;font-size:0.85em;opacity:0.5;text-decoration:none}
 #coffeeLink:hover{opacity:1}
-/* Overlay base */
 .overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30;background:rgba(10,10,46,0.97)}
 .overlay.show{display:flex}
 .overlay h2{color:#0ff;font-size:1.8em;margin-bottom:20px;text-shadow:0 0 10px #0ff}
-/* High score overlay */
 #hsOverlay .hs-list{text-align:left;font-size:1.3em;margin-bottom:20px;line-height:2}
 #hsOverlay .hs-list .rank{color:#fc0}
 #hsOverlay .hs-list .name{color:#0ff}
 #hsOverlay .hs-list .sc{color:#fff}
-/* Initials input */
 #initialsOverlay .init-slots{display:flex;gap:15px;margin-bottom:20px}
 .init-slot{display:flex;flex-direction:column;align-items:center;gap:8px}
 .init-slot .arr{font-size:2em;color:#0ff;cursor:pointer;line-height:1}
@@ -51,7 +48,6 @@ canvas{display:block;width:100%;height:100%}
 .okbtn:active{transform:scale(0.95)}
 .nochmal{font-size:1.2em;padding:12px 30px;border:2px solid #fc0;border-radius:10px;background:transparent;color:#fc0;font-family:inherit;cursor:pointer;margin-top:10px}
 .nochmal:active{transform:scale(0.95)}
-/* WiFi settings */
 #wifiOverlay .wifi-info{margin-bottom:15px;font-size:1em;line-height:1.8;text-align:center}
 #wifiOverlay .wifi-info .label{color:#888}
 #wifiOverlay .wifi-info .val{color:#0f0}
@@ -66,26 +62,34 @@ canvas{display:block;width:100%;height:100%}
 #wifiMsg{color:#0f0;font-size:0.9em;margin-top:10px;min-height:1.5em}
 .close-btn{position:absolute;top:15px;right:20px;font-size:1.5em;color:#fff;cursor:pointer;opacity:0.6}
 .close-btn:hover{opacity:1}
+.lang-row{display:flex;gap:8px;margin-bottom:20px}
+.lang-btn{padding:6px 14px;border:2px solid #555;border-radius:6px;background:transparent;color:#888;font-family:inherit;font-size:0.9em;cursor:pointer}
+.lang-btn.active{border-color:#fc0;color:#fc0}
+.settings-section{border-top:1px solid #333;padding-top:15px;margin-top:15px;width:80%;text-align:center}
+.settings-section h3{color:#fc0;font-size:1em;margin-bottom:10px}
 </style>
 </head>
 <body>
 <div id="lobby">
   <h1>JASIU PONG</h1>
-  <div class="sub" id="lobSub">Choose your mode!</div>
+  <div class="sub" id="lobSub"></div>
   <div class="btns" id="modeSelect">
-    <button class="pbtn solo" onclick="startSolo()">1 Player</button>
-    <button class="pbtn p1" onclick="showSidePick()">2 Players</button>
+    <button class="pbtn solo" onclick="startSolo()" id="btnSolo"></button>
+    <button class="pbtn p1" onclick="showSidePick()" id="btn2p"></button>
   </div>
   <div class="btns" id="sidePick" style="display:none">
-    <button class="pbtn p1" id="btn1" onclick="pick(1)">Left</button>
-    <button class="pbtn p2" id="btn2" onclick="pick(2)">Right</button>
+    <button class="pbtn p1" id="btn1" onclick="pick(1)"></button>
+    <button class="pbtn p2" id="btn2" onclick="pick(2)"></button>
   </div>
-  <div style="display:none" id="backRow"><button class="pbtn" style="color:#888;border-color:#888;font-size:1em;padding:15px 25px;margin-top:15px" onclick="showModeSelect()">Back</button></div>
+  <div style="display:none" id="backRow"><button class="pbtn" style="color:#888;border-color:#888;font-size:1em;padding:15px 25px;margin-top:15px" onclick="showModeSelect()" id="btnBack"></button></div>
   <div id="msg"></div>
-  <button id="settingsBtn" onclick="openWifi()">&#9881;</button>
+  <button id="settingsBtn" onclick="openSettings()">&#9881;</button>
   <a id="coffeeLink" href="https://buymeacoffee.com/Snail3d" target="_blank">&#9749; Buy me a coffee</a>
 </div>
-<div id="wait"><div class="status" id="waitText">Waiting for opponent...</div></div>
+<div id="wait">
+  <div class="status" id="waitText"></div>
+  <div id="waitSide"></div>
+</div>
 <div class="score"><span id="s1">0</span><span id="s2">0</span></div>
 <div id="toast"></div>
 <div id="dbg"></div>
@@ -93,14 +97,14 @@ canvas{display:block;width:100%;height:100%}
 
 <!-- High Score Leaderboard -->
 <div class="overlay" id="hsOverlay">
-  <h2>HIGH SCORES</h2>
+  <h2 id="hsTitle">HIGH SCORES</h2>
   <div class="hs-list" id="hsList"></div>
-  <button class="nochmal" onclick="replaySolo()">Play Again</button>
+  <button class="nochmal" onclick="replaySolo()" id="btnReplay"></button>
 </div>
 
 <!-- Initials Input -->
 <div class="overlay" id="initialsOverlay">
-  <h2>NEW HIGH SCORE!</h2>
+  <h2 id="initTitle"></h2>
   <div style="font-size:1.5em;color:#fc0;margin-bottom:15px" id="yourScore"></div>
   <div class="init-slots">
     <div class="init-slot">
@@ -122,22 +126,237 @@ canvas{display:block;width:100%;height:100%}
   <button class="okbtn" onclick="submitInitials()">OK</button>
 </div>
 
-<!-- WiFi Settings -->
-<div class="overlay" id="wifiOverlay">
-  <span class="close-btn" onclick="closeWifi()">&times;</span>
-  <h2>WiFi</h2>
-  <div class="wifi-info" id="wifiInfo"></div>
-  <div>
-    <button class="wifi-btn" onclick="wifiScan()">Scan</button>
-    <button class="wifi-btn danger" id="disconnBtn" onclick="wifiDisconnect()" style="display:none">Disconnect</button>
+<!-- Settings -->
+<div class="overlay" id="settingsOverlay">
+  <span class="close-btn" onclick="closeSettings()">&times;</span>
+  <h2 id="settingsTitle"></h2>
+  <div class="settings-section" style="border-top:none;padding-top:0;margin-top:0">
+    <h3 id="langLabel"></h3>
+    <div class="lang-row" id="langRow">
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('de')">DE</button>
+      <button class="lang-btn" onclick="setLang('pl')">PL</button>
+      <button class="lang-btn" onclick="setLang('es')">ES</button>
+    </div>
   </div>
-  <div id="networkList"></div>
-  <input type="password" id="passInput" placeholder="Password">
-  <button class="wifi-btn" id="connBtn" onclick="wifiConnect()" style="display:none">Connect</button>
-  <div id="wifiMsg"></div>
+  <div class="settings-section">
+    <h3>WiFi</h3>
+    <div class="wifi-info" id="wifiInfo"></div>
+    <div>
+      <button class="wifi-btn" onclick="wifiScan()" id="btnScan">Scan</button>
+      <button class="wifi-btn danger" id="disconnBtn" onclick="wifiDisconnect()" style="display:none"></button>
+    </div>
+    <div id="networkList"></div>
+    <input type="password" id="passInput" placeholder="">
+    <button class="wifi-btn" id="connBtn" onclick="wifiConnect()" style="display:none"></button>
+    <div id="wifiMsg"></div>
+  </div>
 </div>
 
 <script>
+// === I18N ===
+var LANG = {
+  en: {
+    chooseMode: 'Choose your mode!',
+    onePlayer: '1 Player',
+    twoPlayers: '2 Players',
+    left: 'Left',
+    right: 'Right',
+    back: 'Back',
+    pickSide: 'Pick your side!',
+    waitingOpponent: 'Waiting for other player...',
+    youPicked: 'You picked:',
+    connecting: 'Connecting...',
+    alreadyTaken: 'Already taken! Pick the other side.',
+    networkError: 'Network error! Try again.',
+    timeout: 'Timeout! Try again.',
+    opponentDc: 'Opponent disconnected...',
+    gameOver: 'Game Over! Score: ',
+    pointRight: 'Point Right!',
+    pointLeft: 'Point Left!',
+    youWin: 'YOU WIN!',
+    youLose: 'You lose!',
+    highScores: 'HIGH SCORES',
+    playAgain: 'Play Again',
+    newHighScore: 'NEW HIGH SCORE!',
+    noScores: 'No scores yet',
+    settings: 'Settings',
+    language: 'Language',
+    scan: 'Scan',
+    disconnect: 'Disconnect',
+    connect: 'Connect',
+    password: 'Password',
+    scanning: 'Scanning...',
+    noNetworks: 'No networks found',
+    scanError: 'Scan error',
+    network: 'Network: ',
+    connected: 'Connected!',
+    connFailed: 'Connection failed',
+    error: 'Error',
+    disconnected: 'Disconnected',
+    notConnected: 'not connected',
+    coffee: 'Buy me a coffee'
+  },
+  de: {
+    chooseMode: 'Wie willst du spielen?',
+    onePlayer: '1 Spieler',
+    twoPlayers: '2 Spieler',
+    left: 'Links',
+    right: 'Rechts',
+    back: 'Zur\u00fcck',
+    pickSide: 'W\u00e4hle deine Seite!',
+    waitingOpponent: 'Warte auf Mitspieler...',
+    youPicked: 'Du spielst:',
+    connecting: 'Verbinde...',
+    alreadyTaken: 'Schon vergeben! W\u00e4hle die andere Seite.',
+    networkError: 'Netzwerk-Fehler! Nochmal versuchen.',
+    timeout: 'Zeitüberschreitung! Nochmal versuchen.',
+    opponentDc: 'Gegner weg...',
+    gameOver: 'Vorbei! Punkte: ',
+    pointRight: 'Punkt Rechts!',
+    pointLeft: 'Punkt Links!',
+    youWin: 'GEWONNEN!',
+    youLose: 'Verloren!',
+    highScores: 'BESTENLISTE',
+    playAgain: 'Nochmal',
+    newHighScore: 'NEUER HIGHSCORE!',
+    noScores: 'Noch keine Scores',
+    settings: 'Einstellungen',
+    language: 'Sprache',
+    scan: 'Suchen',
+    disconnect: 'Trennen',
+    connect: 'Verbinden',
+    password: 'Passwort',
+    scanning: 'Suche...',
+    noNetworks: 'Keine Netzwerke gefunden',
+    scanError: 'Suchfehler',
+    network: 'Netzwerk: ',
+    connected: 'Verbunden!',
+    connFailed: 'Verbindung fehlgeschlagen',
+    error: 'Fehler',
+    disconnected: 'Getrennt',
+    notConnected: 'nicht verbunden',
+    coffee: 'Kauf mir einen Kaffee'
+  },
+  pl: {
+    chooseMode: 'Wybierz tryb!',
+    onePlayer: '1 Gracz',
+    twoPlayers: '2 Graczy',
+    left: 'Lewo',
+    right: 'Prawo',
+    back: 'Wstecz',
+    pickSide: 'Wybierz stron\u0119!',
+    waitingOpponent: 'Czekam na drugiego gracza...',
+    youPicked: 'Wybra\u0142e\u015b:',
+    connecting: '\u0141\u0105czenie...',
+    alreadyTaken: 'Ju\u017c zaj\u0119te! Wybierz drug\u0105 stron\u0119.',
+    networkError: 'B\u0142\u0105d sieci! Spr\u00f3buj ponownie.',
+    timeout: 'Timeout! Spr\u00f3buj ponownie.',
+    opponentDc: 'Przeciwnik si\u0119 roz\u0142\u0105czy\u0142...',
+    gameOver: 'Koniec gry! Wynik: ',
+    pointRight: 'Punkt Prawo!',
+    pointLeft: 'Punkt Lewo!',
+    youWin: 'WYGRA\u0141E\u015a!',
+    youLose: 'Przegra\u0142e\u015b!',
+    highScores: 'NAJLEPSZE WYNIKI',
+    playAgain: 'Jeszcze raz',
+    newHighScore: 'NOWY REKORD!',
+    noScores: 'Brak wynik\u00f3w',
+    settings: 'Ustawienia',
+    language: 'J\u0119zyk',
+    scan: 'Skanuj',
+    disconnect: 'Roz\u0142\u0105cz',
+    connect: 'Po\u0142\u0105cz',
+    password: 'Has\u0142o',
+    scanning: 'Skanowanie...',
+    noNetworks: 'Nie znaleziono sieci',
+    scanError: 'B\u0142\u0105d skanowania',
+    network: 'Sie\u0107: ',
+    connected: 'Po\u0142\u0105czono!',
+    connFailed: 'Po\u0142\u0105czenie nieudane',
+    error: 'B\u0142\u0105d',
+    disconnected: 'Roz\u0142\u0105czono',
+    notConnected: 'nie po\u0142\u0105czono',
+    coffee: 'Postaw mi kaw\u0119'
+  },
+  es: {
+    chooseMode: '\u00a1Elige tu modo!',
+    onePlayer: '1 Jugador',
+    twoPlayers: '2 Jugadores',
+    left: 'Izquierda',
+    right: 'Derecha',
+    back: 'Volver',
+    pickSide: '\u00a1Elige tu lado!',
+    waitingOpponent: 'Esperando al otro jugador...',
+    youPicked: 'Elegiste:',
+    connecting: 'Conectando...',
+    alreadyTaken: '\u00a1Ya ocupado! Elige el otro lado.',
+    networkError: '\u00a1Error de red! Intenta de nuevo.',
+    timeout: '\u00a1Tiempo agotado! Intenta de nuevo.',
+    opponentDc: 'Oponente desconectado...',
+    gameOver: '\u00a1Fin! Puntos: ',
+    pointRight: '\u00a1Punto Derecha!',
+    pointLeft: '\u00a1Punto Izquierda!',
+    youWin: '\u00a1GANASTE!',
+    youLose: '\u00a1Perdiste!',
+    highScores: 'MEJORES PUNTUACIONES',
+    playAgain: 'Otra vez',
+    newHighScore: '\u00a1NUEVO R\u00c9CORD!',
+    noScores: 'Sin puntuaciones',
+    settings: 'Ajustes',
+    language: 'Idioma',
+    scan: 'Buscar',
+    disconnect: 'Desconectar',
+    connect: 'Conectar',
+    password: 'Contrase\u00f1a',
+    scanning: 'Buscando...',
+    noNetworks: 'No se encontraron redes',
+    scanError: 'Error de b\u00fasqueda',
+    network: 'Red: ',
+    connected: '\u00a1Conectado!',
+    connFailed: 'Conexi\u00f3n fallida',
+    error: 'Error',
+    disconnected: 'Desconectado',
+    notConnected: 'no conectado',
+    coffee: 'Inv\u00edtame un caf\u00e9'
+  }
+};
+
+var curLang = 'en';
+function T(k){ return LANG[curLang][k] || LANG.en[k] || k; }
+
+function setLang(lang){
+  curLang = lang;
+  try { localStorage.setItem('pong_lang', lang); } catch(e){}
+  applyLang();
+}
+
+function applyLang(){
+  document.getElementById('lobSub').textContent = T('chooseMode');
+  document.getElementById('btnSolo').textContent = T('onePlayer');
+  document.getElementById('btn2p').textContent = T('twoPlayers');
+  document.getElementById('btn1').textContent = T('left');
+  document.getElementById('btn2').textContent = T('right');
+  document.getElementById('btnBack').textContent = T('back');
+  document.getElementById('waitText').textContent = T('waitingOpponent');
+  document.getElementById('hsTitle').textContent = T('highScores');
+  document.getElementById('btnReplay').textContent = T('playAgain');
+  document.getElementById('initTitle').textContent = T('newHighScore');
+  document.getElementById('settingsTitle').textContent = T('settings');
+  document.getElementById('langLabel').textContent = T('language');
+  document.getElementById('btnScan').textContent = T('scan');
+  document.getElementById('disconnBtn').textContent = T('disconnect');
+  document.getElementById('connBtn').textContent = T('connect');
+  document.getElementById('passInput').placeholder = T('password');
+  document.getElementById('coffeeLink').innerHTML = '&#9749; ' + T('coffee');
+  // highlight active lang button
+  var btns = document.getElementById('langRow').children;
+  for(var i = 0; i < btns.length; i++){
+    btns[i].className = 'lang-btn' + (btns[i].textContent.toLowerCase() === curLang ? ' active' : '');
+  }
+}
+
+// === GAME VARS ===
 var WINH = 7, PH = 0.22, PW = 0.03, BR = 0.015, BS = 0.005;
 var canvas = document.getElementById('c');
 var ctx = canvas.getContext('2d');
@@ -162,17 +381,17 @@ function showSidePick(){
   document.getElementById('modeSelect').style.display = 'none';
   document.getElementById('sidePick').style.display = 'flex';
   document.getElementById('backRow').style.display = '';
-  document.getElementById('lobSub').textContent = 'Pick your side!';
+  document.getElementById('lobSub').textContent = T('pickSide');
 }
 function showModeSelect(){
   document.getElementById('sidePick').style.display = 'none';
   document.getElementById('backRow').style.display = 'none';
   document.getElementById('modeSelect').style.display = 'flex';
-  document.getElementById('lobSub').textContent = 'Choose your mode!';
+  document.getElementById('lobSub').textContent = T('chooseMode');
   document.getElementById('msg').textContent = '';
 }
 function pick(n){
-  document.getElementById('msg').textContent = 'Connecting...';
+  document.getElementById('msg').textContent = T('connecting');
   var x = new XMLHttpRequest();
   x.open('GET', '/claim?p=' + n, true);
   x.timeout = 3000;
@@ -181,14 +400,18 @@ function pick(n){
       myPlayer = n;
       document.getElementById('lobby').style.display = 'none';
       document.getElementById('wait').style.display = 'flex';
+      document.getElementById('waitText').textContent = T('waitingOpponent');
+      var sideColor = n === 1 ? '#0ff' : '#f0f';
+      var sideName = n === 1 ? T('left') : T('right');
+      document.getElementById('waitSide').innerHTML = T('youPicked') + ' <span style="color:' + sideColor + ';text-shadow:0 0 10px ' + sideColor + '">' + sideName + '</span>';
       startPolling();
     } else {
-      document.getElementById('msg').textContent = 'Already taken! Pick the other side.';
+      document.getElementById('msg').textContent = T('alreadyTaken');
       document.getElementById('btn' + n).classList.add('taken');
     }
   };
-  x.onerror = function(){ document.getElementById('msg').textContent = 'Network error! Try again.'; };
-  x.ontimeout = function(){ document.getElementById('msg').textContent = 'Timeout! Try again.'; };
+  x.onerror = function(){ document.getElementById('msg').textContent = T('networkError'); };
+  x.ontimeout = function(){ document.getElementById('msg').textContent = T('timeout'); };
   x.send();
 }
 
@@ -241,7 +464,7 @@ function startPolling(){
         if(!bothIn && gameRunning){
           gameRunning = false;
           document.getElementById('wait').style.display = 'flex';
-          document.getElementById('waitText').textContent = 'Opponent disconnected...';
+          document.getElementById('waitText').textContent = T('opponentDc');
         }
       } catch(e){}
     };
@@ -277,7 +500,7 @@ function soloMiss(){
   if(soloGameOver) return;
   soloGameOver = true;
   gameRunning = false;
-  showToast('Game Over! Score: ' + soloScore);
+  showToast(T('gameOver') + soloScore);
   setTimeout(function(){
     fetchHighScores(function(hs){
       if(hs.length < 3 || soloScore > hs[hs.length - 1].score){
@@ -310,14 +533,11 @@ function physics(){
       onPaddleHit();
     }
   }
-  // Solo mode: miss = game over
   if(myPlayer === 3){
-    if(ball.x < -0.05 || ball.x > 1.05){
-      soloMiss();
-    }
+    if(ball.x < -0.05 || ball.x > 1.05){ soloMiss(); }
   } else {
-    if(ball.x < -0.05){ scores[1]++; updateScoreDisplay(); showToast('Point Right!'); checkWin() || resetBall(); }
-    if(ball.x > 1.05){ scores[0]++; updateScoreDisplay(); showToast('Point Left!'); checkWin() || resetBall(); }
+    if(ball.x < -0.05){ scores[1]++; updateScoreDisplay(); showToast(T('pointRight')); checkWin() || resetBall(); }
+    if(ball.x > 1.05){ scores[0]++; updateScoreDisplay(); showToast(T('pointLeft')); checkWin() || resetBall(); }
   }
 }
 
@@ -325,7 +545,7 @@ function checkWin(){
   for(var i = 0; i < 2; i++){
     if(scores[i] >= WINH){
       gameRunning = false;
-      showToast(i+1 === myPlayer ? 'YOU WIN!' : 'You lose!');
+      showToast(i+1 === myPlayer ? T('youWin') : T('youLose'));
       setTimeout(function(){ if(totalPlayers >= 2){ scores=[0,0]; resetBall(); gameRunning=true; updateScoreDisplay(); } }, 3000);
       return true;
     }
@@ -407,7 +627,7 @@ function updateScoreDisplay(){
 function showToast(t){ var e = document.getElementById('toast'); e.textContent = t; e.style.opacity = '1'; setTimeout(function(){ e.style.opacity = '0'; }, 1200); }
 
 // === HIGH SCORES ===
-var initLetters = [0, 0, 0]; // A=0
+var initLetters = [0, 0, 0];
 var pendingScore = 0;
 
 function fetchHighScores(cb){
@@ -428,6 +648,7 @@ function showInitials(score){
   document.getElementById('L1').textContent = 'A';
   document.getElementById('L2').textContent = 'A';
   document.getElementById('yourScore').textContent = 'Score: ' + score;
+  document.getElementById('initTitle').textContent = T('newHighScore');
   document.getElementById('initialsOverlay').style.display = 'flex';
 }
 
@@ -458,8 +679,10 @@ function showLeaderboard(hs){
   for(var i = 0; i < hs.length; i++){
     html += '<div><span class="rank">#' + (i+1) + '</span> <span class="name">' + hs[i].name + '</span> <span class="sc">' + hs[i].score + '</span></div>';
   }
-  if(hs.length === 0) html = '<div style="color:#888">No scores yet</div>';
+  if(hs.length === 0) html = '<div style="color:#888">' + T('noScores') + '</div>';
   document.getElementById('hsList').innerHTML = html;
+  document.getElementById('hsTitle').textContent = T('highScores');
+  document.getElementById('btnReplay').textContent = T('playAgain');
   document.getElementById('hsOverlay').style.display = 'flex';
 }
 
@@ -473,11 +696,11 @@ function replaySolo(){
   gameRunning = true;
 }
 
-// === WIFI SETTINGS ===
+// === SETTINGS ===
 var selectedSSID = '';
 
-function openWifi(){
-  document.getElementById('wifiOverlay').style.display = 'flex';
+function openSettings(){
+  document.getElementById('settingsOverlay').style.display = 'flex';
   document.getElementById('networkList').innerHTML = '';
   document.getElementById('passInput').style.display = 'none';
   document.getElementById('connBtn').style.display = 'none';
@@ -486,8 +709,8 @@ function openWifi(){
   refreshWifiStatus();
 }
 
-function closeWifi(){
-  document.getElementById('wifiOverlay').style.display = 'none';
+function closeSettings(){
+  document.getElementById('settingsOverlay').style.display = 'none';
 }
 
 function refreshWifiStatus(){
@@ -503,7 +726,7 @@ function refreshWifiStatus(){
         html += '<div><span class="label">STA IP: </span><span class="val">' + s.ip + '</span></div>';
         document.getElementById('disconnBtn').style.display = '';
       } else {
-        html += '<div><span class="label">WiFi: </span><span style="color:#f44">not connected</span></div>';
+        html += '<div><span class="label">WiFi: </span><span style="color:#f44">' + T('notConnected') + '</span></div>';
         document.getElementById('disconnBtn').style.display = 'none';
       }
       document.getElementById('wifiInfo').innerHTML = html;
@@ -513,7 +736,7 @@ function refreshWifiStatus(){
 }
 
 function wifiScan(){
-  document.getElementById('wifiMsg').textContent = 'Scanning...';
+  document.getElementById('wifiMsg').textContent = T('scanning');
   document.getElementById('networkList').innerHTML = '';
   var x = new XMLHttpRequest();
   x.open('GET', '/api/wifi/scan', true);
@@ -527,17 +750,17 @@ function wifiScan(){
         html += '<div class="net" onclick="selectNet(\'' + nets[i].ssid.replace(/'/g,"\\'") + '\',' + nets[i].open + ')">' +
           nets[i].ssid + '<span class="rssi">' + nets[i].rssi + ' dBm</span></div>';
       }
-      if(nets.length === 0) html = '<div style="color:#888;padding:10px">No networks found</div>';
+      if(nets.length === 0) html = '<div style="color:#888;padding:10px">' + T('noNetworks') + '</div>';
       document.getElementById('networkList').innerHTML = html;
-    } catch(e){ document.getElementById('wifiMsg').textContent = 'Scan error'; }
+    } catch(e){ document.getElementById('wifiMsg').textContent = T('scanError'); }
   };
-  x.onerror = function(){ document.getElementById('wifiMsg').textContent = 'Scan error'; };
+  x.onerror = function(){ document.getElementById('wifiMsg').textContent = T('scanError'); };
   x.send();
 }
 
 function selectNet(ssid, open){
   selectedSSID = ssid;
-  document.getElementById('wifiMsg').textContent = 'Network: ' + ssid;
+  document.getElementById('wifiMsg').textContent = T('network') + ssid;
   if(open){
     document.getElementById('passInput').style.display = 'none';
   } else {
@@ -550,7 +773,7 @@ function selectNet(ssid, open){
 function wifiConnect(){
   if(!selectedSSID) return;
   var pass = document.getElementById('passInput').value;
-  document.getElementById('wifiMsg').textContent = 'Connecting...';
+  document.getElementById('wifiMsg').textContent = T('connecting');
   document.getElementById('connBtn').style.display = 'none';
   var x = new XMLHttpRequest();
   x.open('POST', '/api/wifi/connect', true);
@@ -558,17 +781,17 @@ function wifiConnect(){
   x.timeout = 15000;
   x.onload = function(){
     if(x.responseText === 'ok'){
-      document.getElementById('wifiMsg').textContent = 'Connected!';
+      document.getElementById('wifiMsg').textContent = T('connected');
       document.getElementById('passInput').style.display = 'none';
       document.getElementById('networkList').innerHTML = '';
       refreshWifiStatus();
     } else {
-      document.getElementById('wifiMsg').textContent = 'Connection failed';
+      document.getElementById('wifiMsg').textContent = T('connFailed');
       document.getElementById('connBtn').style.display = '';
     }
   };
   x.onerror = function(){
-    document.getElementById('wifiMsg').textContent = 'Error';
+    document.getElementById('wifiMsg').textContent = T('error');
     document.getElementById('connBtn').style.display = '';
   };
   x.send('ssid=' + encodeURIComponent(selectedSSID) + '&pass=' + encodeURIComponent(pass));
@@ -578,10 +801,13 @@ function wifiDisconnect(){
   var x = new XMLHttpRequest();
   x.open('POST', '/api/wifi/disconnect', true);
   x.timeout = 3000;
-  x.onload = function(){ refreshWifiStatus(); document.getElementById('wifiMsg').textContent = 'Disconnected'; };
+  x.onload = function(){ refreshWifiStatus(); document.getElementById('wifiMsg').textContent = T('disconnected'); };
   x.send();
 }
 
+// === INIT ===
+try { var saved = localStorage.getItem('pong_lang'); if(saved && LANG[saved]) curLang = saved; } catch(e){}
+applyLang();
 loop();
 </script>
 </body>
