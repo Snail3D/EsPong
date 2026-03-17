@@ -7,9 +7,7 @@ void WiFiManager::begin() {
     wifiPrefs.begin("wificreds", false);
 
     WiFi.mode(WIFI_AP_STA);
-    WiFi.softAP(WIFI_SSID, nullptr, WIFI_CHANNEL, 0, MAX_CLIENTS);
-    Serial.printf("AP started: %s @ %s\n", WIFI_SSID,
-                  WiFi.softAPIP().toString().c_str());
+    _startAP();
 
     // Try saved STA credentials
     String ssid = wifiPrefs.getString("ssid", "");
@@ -27,6 +25,19 @@ void WiFiManager::begin() {
             Serial.println("STA connection failed");
         }
     }
+}
+
+void WiFiManager::_startAP() {
+    String apSsid = wifiPrefs.getString("ap_ssid", WIFI_SSID);
+    String apPass = wifiPrefs.getString("ap_pass", "");
+
+    if (apPass.length() >= 8) {
+        WiFi.softAP(apSsid.c_str(), apPass.c_str(), WIFI_CHANNEL, 0, MAX_CLIENTS);
+    } else {
+        WiFi.softAP(apSsid.c_str(), nullptr, WIFI_CHANNEL, 0, MAX_CLIENTS);
+    }
+    Serial.printf("AP started: %s @ %s\n", apSsid.c_str(),
+                  WiFi.softAPIP().toString().c_str());
 }
 
 String WiFiManager::scan() {
@@ -76,6 +87,43 @@ String WiFiManager::getStaStatus() {
     return out;
 }
 
+String WiFiManager::getGameName() {
+    return wifiPrefs.getString("game_name", "JASIU PONG");
+}
+
+String WiFiManager::getApSsid() {
+    return wifiPrefs.getString("ap_ssid", WIFI_SSID);
+}
+
+bool WiFiManager::hasApPass() {
+    return wifiPrefs.getString("ap_pass", "").length() >= 8;
+}
+
+String WiFiManager::getConfigJson() {
+    JsonDocument doc;
+    doc["gameName"] = getGameName();
+    doc["apSsid"] = getApSsid();
+    doc["hasPass"] = hasApPass();
+    String out;
+    serializeJson(doc, out);
+    return out;
+}
+
+void WiFiManager::setConfig(const char* gameName, const char* apSsid, const char* apPass) {
+    if (strlen(gameName) > 0) {
+        wifiPrefs.putString("game_name", gameName);
+    }
+    if (strlen(apSsid) > 0) {
+        wifiPrefs.putString("ap_ssid", apSsid);
+    }
+    // Empty string clears password (open network), 8+ chars sets it
+    wifiPrefs.putString("ap_pass", apPass);
+
+    // Restart AP with new settings
+    _startAP();
+    Serial.printf("Config updated: name=%s, ssid=%s\n", gameName, apSsid);
+}
+
 void WiFiManager::_saveCreds(const char* ssid, const char* pass) {
     wifiPrefs.putString("ssid", ssid);
     wifiPrefs.putString("pass", pass);
@@ -84,8 +132,4 @@ void WiFiManager::_saveCreds(const char* ssid, const char* pass) {
 void WiFiManager::_clearCreds() {
     wifiPrefs.remove("ssid");
     wifiPrefs.remove("pass");
-}
-
-void WiFiManager::_loadCreds() {
-    // Used internally by begin()
 }

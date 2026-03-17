@@ -12,8 +12,15 @@ public:
     void disconnect();
     String getStaStatus();
 
+    // AP config
+    String getGameName();
+    String getApSsid();
+    bool hasApPass();
+    String getConfigJson();
+    void setConfig(const char* gameName, const char* apSsid, const char* apPass);
+
 private:
-    void _loadCreds();
     void _saveCreds(const char* ssid, const char* pass);
     void _clearCreds();
+    void _startAP();
 };

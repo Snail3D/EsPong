@@ -84,11 +84,15 @@ canvas{display:block;width:100%;height:100%}
 #installBanner .inst-text{color:var(--accent);font-size:0.9em}
 #installBanner .inst-close{color:#888;font-size:1.2em;cursor:pointer;padding:0 4px}
 #settingsOverlay{overflow-y:auto}
+.cfg-input{background:#111;border:2px solid #555;color:#fff;font-family:inherit;font-size:1em;padding:8px 12px;border-radius:8px;width:80%;margin:6px auto;text-align:center;display:block}
+.cfg-input:focus{border-color:var(--accent);outline:none}
+.cfg-note{color:#888;font-size:0.75em;margin-top:4px}
+#cfgMsg{color:#0f0;font-size:0.9em;margin-top:8px;min-height:1.5em}
 </style>
 </head>
 <body>
 <div id="lobby">
-  <h1>JASIU PONG</h1>
+  <h1 id="gameTitle">JASIU PONG</h1>
   <div class="sub" id="lobSub"></div>
   <div class="btns" id="modeSelect">
     <button class="pbtn solo" onclick="startSolo()" id="btnSolo"></button>
@@ -160,6 +164,15 @@ canvas{display:block;width:100%;height:100%}
   <div class="settings-section">
     <h3 id="themeLabel"></h3>
     <div class="theme-row" id="themeRow"></div>
+  </div>
+  <div class="settings-section">
+    <h3 id="cfgLabel"></h3>
+    <input class="cfg-input" id="cfgGameName" placeholder="Game Name">
+    <input class="cfg-input" id="cfgApSsid" placeholder="AP Name (SSID)">
+    <input class="cfg-input" id="cfgApPass" type="password" placeholder="AP Password">
+    <div class="cfg-note" id="cfgPassNote"></div>
+    <button class="wifi-btn" onclick="saveConfig()" id="btnSaveCfg"></button>
+    <div id="cfgMsg"></div>
   </div>
   <div class="settings-section">
     <h3>WiFi</h3>
@@ -260,7 +273,11 @@ var LANG = {
     error: 'Error',
     disconnected: 'Disconnected',
     notConnected: 'not connected',
-    coffee: 'Buy me a coffee'
+    coffee: 'Buy me a coffee',
+    config: 'Game Config',
+    saveCfg: 'Save',
+    cfgSaved: 'Saved! AP restarted.',
+    cfgPassNote: 'Min 8 chars, or leave empty for open network'
   },
   de: {
     chooseMode: 'Wie willst du spielen?',
@@ -302,7 +319,11 @@ var LANG = {
     error: 'Fehler',
     disconnected: 'Getrennt',
     notConnected: 'nicht verbunden',
-    coffee: 'Kauf mir einen Kaffee'
+    coffee: 'Kauf mir einen Kaffee',
+    config: 'Spielkonfiguration',
+    saveCfg: 'Speichern',
+    cfgSaved: 'Gespeichert! AP neu gestartet.',
+    cfgPassNote: 'Min. 8 Zeichen, oder leer f\u00fcr offenes Netzwerk'
   },
   pl: {
     chooseMode: 'Wybierz tryb!',
@@ -344,7 +365,11 @@ var LANG = {
     error: 'B\u0142\u0105d',
     disconnected: 'Roz\u0142\u0105czono',
     notConnected: 'nie po\u0142\u0105czono',
-    coffee: 'Postaw mi kaw\u0119'
+    coffee: 'Postaw mi kaw\u0119',
+    config: 'Konfiguracja gry',
+    saveCfg: 'Zapisz',
+    cfgSaved: 'Zapisano! AP zrestartowany.',
+    cfgPassNote: 'Min. 8 znak\u00f3w, lub puste dla otwartej sieci'
   },
   es: {
     chooseMode: '\u00a1Elige tu modo!',
@@ -386,7 +411,11 @@ var LANG = {
     error: 'Error',
     disconnected: 'Desconectado',
     notConnected: 'no conectado',
-    coffee: 'Inv\u00edtame un caf\u00e9'
+    coffee: 'Inv\u00edtame un caf\u00e9',
+    config: 'Configuraci\u00f3n del juego',
+    saveCfg: 'Guardar',
+    cfgSaved: '\u00a1Guardado! AP reiniciado.',
+    cfgPassNote: 'M\u00edn. 8 caracteres, o vac\u00edo para red abierta'
   }
 };
 
@@ -418,6 +447,9 @@ function applyLang(){
   document.getElementById('connBtn').textContent = T('connect');
   document.getElementById('passInput').placeholder = T('password');
   document.getElementById('coffeeLink').innerHTML = '&#9749; ' + T('coffee');
+  document.getElementById('cfgLabel').textContent = T('config');
+  document.getElementById('btnSaveCfg').textContent = T('saveCfg');
+  document.getElementById('cfgPassNote').textContent = T('cfgPassNote');
   var btns = document.getElementById('langRow').children;
   for(var i = 0; i < btns.length; i++){
     btns[i].className = 'lang-btn' + (btns[i].textContent.toLowerCase() === curLang ? ' active' : '');
@@ -775,9 +807,55 @@ function openSettings(){
   document.getElementById('passInput').style.display = 'none';
   document.getElementById('connBtn').style.display = 'none';
   document.getElementById('wifiMsg').textContent = '';
+  document.getElementById('cfgMsg').textContent = '';
   selectedSSID = '';
   renderThemeButtons();
+  loadConfig();
   refreshWifiStatus();
+}
+
+function loadConfig(){
+  var x = new XMLHttpRequest();
+  x.open('GET', '/api/config', true);
+  x.timeout = 3000;
+  x.onload = function(){
+    try {
+      var c = JSON.parse(x.responseText);
+      document.getElementById('cfgGameName').value = c.gameName || '';
+      document.getElementById('cfgApSsid').value = c.apSsid || '';
+      document.getElementById('cfgApPass').value = '';
+      document.getElementById('cfgApPass').placeholder = c.hasPass ? '********' : T('password');
+    } catch(e){}
+  };
+  x.send();
+}
+
+function saveConfig(){
+  var gameName = document.getElementById('cfgGameName').value.trim();
+  var apSsid = document.getElementById('cfgApSsid').value.trim();
+  var apPass = document.getElementById('cfgApPass').value;
+  if(apPass.length > 0 && apPass.length < 8){
+    document.getElementById('cfgMsg').textContent = T('cfgPassNote');
+    document.getElementById('cfgMsg').style.color = '#f44';
+    return;
+  }
+  document.getElementById('cfgMsg').textContent = T('connecting');
+  var x = new XMLHttpRequest();
+  x.open('POST', '/api/config', true);
+  x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  x.timeout = 5000;
+  x.onload = function(){
+    document.getElementById('cfgMsg').style.color = '#0f0';
+    document.getElementById('cfgMsg').textContent = T('cfgSaved');
+    if(gameName) document.getElementById('gameTitle').textContent = gameName;
+    document.getElementById('cfgApPass').value = '';
+  };
+  x.onerror = function(){
+    document.getElementById('cfgMsg').style.color = '#f44';
+    document.getElementById('cfgMsg').textContent = T('error');
+  };
+  var body = 'gameName=' + encodeURIComponent(gameName) + '&apSsid=' + encodeURIComponent(apSsid) + '&apPass=' + encodeURIComponent(apPass);
+  x.send(body);
 }
 
 function closeSettings(){
@@ -901,6 +979,19 @@ try { var saved = localStorage.getItem('pong_lang'); if(saved && LANG[saved]) cu
 try { var st = localStorage.getItem('pong_theme'); if(st && THEMES[st]) curTheme = st; } catch(e){}
 setTheme(curTheme);
 applyLang();
+// Load game name from server
+(function(){
+  var x = new XMLHttpRequest();
+  x.open('GET', '/api/config', true);
+  x.timeout = 3000;
+  x.onload = function(){
+    try {
+      var c = JSON.parse(x.responseText);
+      if(c.gameName) document.getElementById('gameTitle').textContent = c.gameName;
+    } catch(e){}
+  };
+  x.send();
+})();
 loop();
 </script>
 </body>

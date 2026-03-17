@@ -95,14 +95,28 @@ void WebServer::begin(GameManager& game, ScoreManager& scores, WiFiManager& wifi
         request->send(200, "text/plain", "ok");
     });
 
+    // --- Config endpoints ---
+    _server.on("/api/config", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        request->send(200, "application/json", _wifi->getConfigJson());
+    });
+
+    _server.on("/api/config", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        String gameName = request->hasParam("gameName", true) ? request->getParam("gameName", true)->value() : "";
+        String apSsid = request->hasParam("apSsid", true) ? request->getParam("apSsid", true)->value() : "";
+        String apPass = request->hasParam("apPass", true) ? request->getParam("apPass", true)->value() : "";
+        _wifi->setConfig(gameName.c_str(), apSsid.c_str(), apPass.c_str());
+        request->send(200, "text/plain", "ok");
+    });
+
     // --- PWA endpoints ---
-    _server.on("/manifest.json", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->send(200, "application/json",
-            "{\"name\":\"JASIU PONG\",\"short_name\":\"Pong\","
+    _server.on("/manifest.json", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        String name = _wifi->getGameName();
+        String json = "{\"name\":\"" + name + "\",\"short_name\":\"Pong\","
             "\"start_url\":\"/\",\"display\":\"fullscreen\","
             "\"orientation\":\"portrait\","
             "\"background_color\":\"#0a0a2e\",\"theme_color\":\"#0a0a2e\","
-            "\"icons\":[{\"src\":\"/icon.svg\",\"sizes\":\"any\",\"type\":\"image/svg+xml\",\"purpose\":\"any\"}]}");
+            "\"icons\":[{\"src\":\"/icon.svg\",\"sizes\":\"any\",\"type\":\"image/svg+xml\",\"purpose\":\"any\"}]}";
+        request->send(200, "application/json", json);
     });
 
     _server.on("/icon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
