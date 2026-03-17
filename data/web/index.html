@@ -280,7 +280,7 @@ function soloMiss(){
   showToast('Game Over! Score: ' + soloScore);
   setTimeout(function(){
     fetchHighScores(function(hs){
-      if(hs.length < 5 || soloScore > hs[hs.length - 1].score){
+      if(hs.length < 3 || soloScore > hs[hs.length - 1].score){
         showInitials(soloScore);
       } else {
         showLeaderboard(hs);

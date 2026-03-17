@@ -15,7 +15,7 @@ public:
     bool addScore(const char* name, int score);
 
 private:
-    static const int MAX_SCORES = 5;
+    static const int MAX_SCORES = 3;
     HighScore _scores[MAX_SCORES];
     int _count = 0;
     void _load();
