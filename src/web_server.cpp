@@ -109,8 +109,7 @@ void WebServer::begin(GameManager& game, ScoreManager& scores, WiFiManager& wifi
         request->send(200, "image/svg+xml",
             "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
             "<rect width='100' height='100' rx='20' fill='#0a0a2e'/>"
-            "<text x='50' y='42' text-anchor='middle' font-size='40'>&#127955;</text>"
-            "<text x='50' y='82' text-anchor='middle' font-size='40'>&#127952;</text>"
+            "<text x='50' y='65' text-anchor='middle' font-size='55'>&#127955;</text>"
             "</svg>");
     });
 
