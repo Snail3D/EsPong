@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
@@ -71,21 +71,21 @@ canvas{display:block;width:100%;height:100%}
 <body>
 <div id="lobby">
   <h1>JASIU PONG</h1>
-  <div class="sub" id="lobSub">Wie willst du spielen?</div>
+  <div class="sub" id="lobSub">Choose your mode!</div>
   <div class="btns" id="modeSelect">
-    <button class="pbtn solo" onclick="startSolo()">1 Spieler</button>
-    <button class="pbtn p1" onclick="showSidePick()">2 Spieler</button>
+    <button class="pbtn solo" onclick="startSolo()">1 Player</button>
+    <button class="pbtn p1" onclick="showSidePick()">2 Players</button>
   </div>
   <div class="btns" id="sidePick" style="display:none">
-    <button class="pbtn p1" id="btn1" onclick="pick(1)">Links</button>
-    <button class="pbtn p2" id="btn2" onclick="pick(2)">Rechts</button>
+    <button class="pbtn p1" id="btn1" onclick="pick(1)">Left</button>
+    <button class="pbtn p2" id="btn2" onclick="pick(2)">Right</button>
   </div>
-  <div style="display:none" id="backRow"><button class="pbtn" style="color:#888;border-color:#888;font-size:1em;padding:15px 25px;margin-top:15px" onclick="showModeSelect()">Zurück</button></div>
+  <div style="display:none" id="backRow"><button class="pbtn" style="color:#888;border-color:#888;font-size:1em;padding:15px 25px;margin-top:15px" onclick="showModeSelect()">Back</button></div>
   <div id="msg"></div>
   <button id="settingsBtn" onclick="openWifi()">&#9881;</button>
   <a id="coffeeLink" href="https://buymeacoffee.com/Snail3d" target="_blank">&#9749; Buy me a coffee</a>
 </div>
-<div id="wait"><div class="status" id="waitText">Warte auf Gegner...</div></div>
+<div id="wait"><div class="status" id="waitText">Waiting for opponent...</div></div>
 <div class="score"><span id="s1">0</span><span id="s2">0</span></div>
 <div id="toast"></div>
 <div id="dbg"></div>
@@ -95,12 +95,12 @@ canvas{display:block;width:100%;height:100%}
 <div class="overlay" id="hsOverlay">
   <h2>HIGH SCORES</h2>
   <div class="hs-list" id="hsList"></div>
-  <button class="nochmal" onclick="replaySolo()">Nochmal</button>
+  <button class="nochmal" onclick="replaySolo()">Play Again</button>
 </div>
 
 <!-- Initials Input -->
 <div class="overlay" id="initialsOverlay">
-  <h2>NEUER HIGH SCORE!</h2>
+  <h2>NEW HIGH SCORE!</h2>
   <div style="font-size:1.5em;color:#fc0;margin-bottom:15px" id="yourScore"></div>
   <div class="init-slots">
     <div class="init-slot">
@@ -132,8 +132,8 @@ canvas{display:block;width:100%;height:100%}
     <button class="wifi-btn danger" id="disconnBtn" onclick="wifiDisconnect()" style="display:none">Disconnect</button>
   </div>
   <div id="networkList"></div>
-  <input type="password" id="passInput" placeholder="Passwort">
-  <button class="wifi-btn" id="connBtn" onclick="wifiConnect()" style="display:none">Verbinden</button>
+  <input type="password" id="passInput" placeholder="Password">
+  <button class="wifi-btn" id="connBtn" onclick="wifiConnect()" style="display:none">Connect</button>
   <div id="wifiMsg"></div>
 </div>
 
@@ -162,17 +162,17 @@ function showSidePick(){
   document.getElementById('modeSelect').style.display = 'none';
   document.getElementById('sidePick').style.display = 'flex';
   document.getElementById('backRow').style.display = '';
-  document.getElementById('lobSub').textContent = 'Wähle deine Seite!';
+  document.getElementById('lobSub').textContent = 'Pick your side!';
 }
 function showModeSelect(){
   document.getElementById('sidePick').style.display = 'none';
   document.getElementById('backRow').style.display = 'none';
   document.getElementById('modeSelect').style.display = 'flex';
-  document.getElementById('lobSub').textContent = 'Wie willst du spielen?';
+  document.getElementById('lobSub').textContent = 'Choose your mode!';
   document.getElementById('msg').textContent = '';
 }
 function pick(n){
-  document.getElementById('msg').textContent = 'Verbinde...';
+  document.getElementById('msg').textContent = 'Connecting...';
   var x = new XMLHttpRequest();
   x.open('GET', '/claim?p=' + n, true);
   x.timeout = 3000;
@@ -183,12 +183,12 @@ function pick(n){
       document.getElementById('wait').style.display = 'flex';
       startPolling();
     } else {
-      document.getElementById('msg').textContent = 'Schon vergeben! Wähle die andere Seite.';
+      document.getElementById('msg').textContent = 'Already taken! Pick the other side.';
       document.getElementById('btn' + n).classList.add('taken');
     }
   };
-  x.onerror = function(){ document.getElementById('msg').textContent = 'Netzwerk-Fehler! Nochmal versuchen.'; };
-  x.ontimeout = function(){ document.getElementById('msg').textContent = 'Timeout! Nochmal versuchen.'; };
+  x.onerror = function(){ document.getElementById('msg').textContent = 'Network error! Try again.'; };
+  x.ontimeout = function(){ document.getElementById('msg').textContent = 'Timeout! Try again.'; };
   x.send();
 }
 
@@ -241,7 +241,7 @@ function startPolling(){
         if(!bothIn && gameRunning){
           gameRunning = false;
           document.getElementById('wait').style.display = 'flex';
-          document.getElementById('waitText').textContent = 'Gegner weg...';
+          document.getElementById('waitText').textContent = 'Opponent disconnected...';
         }
       } catch(e){}
     };
@@ -316,8 +316,8 @@ function physics(){
       soloMiss();
     }
   } else {
-    if(ball.x < -0.05){ scores[1]++; updateScoreDisplay(); showToast('Punkt Rechts!'); checkWin() || resetBall(); }
-    if(ball.x > 1.05){ scores[0]++; updateScoreDisplay(); showToast('Punkt Links!'); checkWin() || resetBall(); }
+    if(ball.x < -0.05){ scores[1]++; updateScoreDisplay(); showToast('Point Right!'); checkWin() || resetBall(); }
+    if(ball.x > 1.05){ scores[0]++; updateScoreDisplay(); showToast('Point Left!'); checkWin() || resetBall(); }
   }
 }
 
@@ -325,7 +325,7 @@ function checkWin(){
   for(var i = 0; i < 2; i++){
     if(scores[i] >= WINH){
       gameRunning = false;
-      showToast(i+1 === myPlayer ? 'GEWONNEN!' : 'Verloren!');
+      showToast(i+1 === myPlayer ? 'YOU WIN!' : 'You lose!');
       setTimeout(function(){ if(totalPlayers >= 2){ scores=[0,0]; resetBall(); gameRunning=true; updateScoreDisplay(); } }, 3000);
       return true;
     }
@@ -458,7 +458,7 @@ function showLeaderboard(hs){
   for(var i = 0; i < hs.length; i++){
     html += '<div><span class="rank">#' + (i+1) + '</span> <span class="name">' + hs[i].name + '</span> <span class="sc">' + hs[i].score + '</span></div>';
   }
-  if(hs.length === 0) html = '<div style="color:#888">Noch keine Scores</div>';
+  if(hs.length === 0) html = '<div style="color:#888">No scores yet</div>';
   document.getElementById('hsList').innerHTML = html;
   document.getElementById('hsOverlay').style.display = 'flex';
 }
@@ -503,7 +503,7 @@ function refreshWifiStatus(){
         html += '<div><span class="label">STA IP: </span><span class="val">' + s.ip + '</span></div>';
         document.getElementById('disconnBtn').style.display = '';
       } else {
-        html += '<div><span class="label">WiFi: </span><span style="color:#f44">nicht verbunden</span></div>';
+        html += '<div><span class="label">WiFi: </span><span style="color:#f44">not connected</span></div>';
         document.getElementById('disconnBtn').style.display = 'none';
       }
       document.getElementById('wifiInfo').innerHTML = html;
@@ -513,7 +513,7 @@ function refreshWifiStatus(){
 }
 
 function wifiScan(){
-  document.getElementById('wifiMsg').textContent = 'Scanne...';
+  document.getElementById('wifiMsg').textContent = 'Scanning...';
   document.getElementById('networkList').innerHTML = '';
   var x = new XMLHttpRequest();
   x.open('GET', '/api/wifi/scan', true);
@@ -527,17 +527,17 @@ function wifiScan(){
         html += '<div class="net" onclick="selectNet(\'' + nets[i].ssid.replace(/'/g,"\\'") + '\',' + nets[i].open + ')">' +
           nets[i].ssid + '<span class="rssi">' + nets[i].rssi + ' dBm</span></div>';
       }
-      if(nets.length === 0) html = '<div style="color:#888;padding:10px">Keine Netzwerke gefunden</div>';
+      if(nets.length === 0) html = '<div style="color:#888;padding:10px">No networks found</div>';
       document.getElementById('networkList').innerHTML = html;
-    } catch(e){ document.getElementById('wifiMsg').textContent = 'Scan Fehler'; }
+    } catch(e){ document.getElementById('wifiMsg').textContent = 'Scan error'; }
   };
-  x.onerror = function(){ document.getElementById('wifiMsg').textContent = 'Scan Fehler'; };
+  x.onerror = function(){ document.getElementById('wifiMsg').textContent = 'Scan error'; };
   x.send();
 }
 
 function selectNet(ssid, open){
   selectedSSID = ssid;
-  document.getElementById('wifiMsg').textContent = 'Netzwerk: ' + ssid;
+  document.getElementById('wifiMsg').textContent = 'Network: ' + ssid;
   if(open){
     document.getElementById('passInput').style.display = 'none';
   } else {
@@ -550,7 +550,7 @@ function selectNet(ssid, open){
 function wifiConnect(){
   if(!selectedSSID) return;
   var pass = document.getElementById('passInput').value;
-  document.getElementById('wifiMsg').textContent = 'Verbinde...';
+  document.getElementById('wifiMsg').textContent = 'Connecting...';
   document.getElementById('connBtn').style.display = 'none';
   var x = new XMLHttpRequest();
   x.open('POST', '/api/wifi/connect', true);
@@ -558,17 +558,17 @@ function wifiConnect(){
   x.timeout = 15000;
   x.onload = function(){
     if(x.responseText === 'ok'){
-      document.getElementById('wifiMsg').textContent = 'Verbunden!';
+      document.getElementById('wifiMsg').textContent = 'Connected!';
       document.getElementById('passInput').style.display = 'none';
       document.getElementById('networkList').innerHTML = '';
       refreshWifiStatus();
     } else {
-      document.getElementById('wifiMsg').textContent = 'Verbindung fehlgeschlagen';
+      document.getElementById('wifiMsg').textContent = 'Connection failed';
       document.getElementById('connBtn').style.display = '';
     }
   };
   x.onerror = function(){
-    document.getElementById('wifiMsg').textContent = 'Fehler';
+    document.getElementById('wifiMsg').textContent = 'Error';
     document.getElementById('connBtn').style.display = '';
   };
   x.send('ssid=' + encodeURIComponent(selectedSSID) + '&pass=' + encodeURIComponent(pass));
@@ -578,7 +578,7 @@ function wifiDisconnect(){
   var x = new XMLHttpRequest();
   x.open('POST', '/api/wifi/disconnect', true);
   x.timeout = 3000;
-  x.onload = function(){ refreshWifiStatus(); document.getElementById('wifiMsg').textContent = 'Getrennt'; };
+  x.onload = function(){ refreshWifiStatus(); document.getElementById('wifiMsg').textContent = 'Disconnected'; };
   x.send();
 }
 
