@@ -71,12 +71,16 @@ canvas{display:block;width:100%;height:100%}
 <body>
 <div id="lobby">
   <h1>JASIU PONG</h1>
-  <div class="sub">Wähle deine Seite!</div>
-  <div class="btns">
+  <div class="sub" id="lobSub">Wie willst du spielen?</div>
+  <div class="btns" id="modeSelect">
+    <button class="pbtn solo" onclick="startSolo()">1 Spieler</button>
+    <button class="pbtn p1" onclick="showSidePick()">2 Spieler</button>
+  </div>
+  <div class="btns" id="sidePick" style="display:none">
     <button class="pbtn p1" id="btn1" onclick="pick(1)">Links</button>
     <button class="pbtn p2" id="btn2" onclick="pick(2)">Rechts</button>
-    <button class="pbtn solo" onclick="startSolo()">Solo</button>
   </div>
+  <div style="display:none" id="backRow"><button class="pbtn" style="color:#888;border-color:#888;font-size:1em;padding:15px 25px;margin-top:15px" onclick="showModeSelect()">Zurück</button></div>
   <div id="msg"></div>
   <button id="settingsBtn" onclick="openWifi()">&#9881;</button>
   <a id="coffeeLink" href="https://buymeacoffee.com/Snail3d" target="_blank">&#9749; Buy me a coffee</a>
@@ -154,6 +158,19 @@ function resize(){
 window.addEventListener('resize', resize);
 resize();
 
+function showSidePick(){
+  document.getElementById('modeSelect').style.display = 'none';
+  document.getElementById('sidePick').style.display = 'flex';
+  document.getElementById('backRow').style.display = '';
+  document.getElementById('lobSub').textContent = 'Wähle deine Seite!';
+}
+function showModeSelect(){
+  document.getElementById('sidePick').style.display = 'none';
+  document.getElementById('backRow').style.display = 'none';
+  document.getElementById('modeSelect').style.display = 'flex';
+  document.getElementById('lobSub').textContent = 'Wie willst du spielen?';
+  document.getElementById('msg').textContent = '';
+}
 function pick(n){
   document.getElementById('msg').textContent = 'Verbinde...';
   var x = new XMLHttpRequest();
