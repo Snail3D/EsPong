@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a2e">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
 <title>JASIU PONG</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
@@ -27,7 +33,7 @@ canvas{display:block;width:100%;height:100%}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .score{position:absolute;top:12px;width:100%;display:flex;justify-content:space-around;z-index:5;pointer-events:none}
 .score span{font-size:2.2em;color:#fff;text-shadow:0 0 10px #0ff;font-family:'Courier New',monospace}
-#toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3em;color:#ff0;text-shadow:0 0 30px #ff0;z-index:20;pointer-events:none;opacity:0;transition:opacity 0.3s}
+#toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3em;color:#ff0;text-shadow:0 0 30px #ff0;z-index:20;pointer-events:none;opacity:0;transition:opacity 0.3s;text-align:center;width:90%;max-width:500px}
 #dbg{position:absolute;bottom:5px;left:5px;color:#555;font-size:9px;z-index:99;pointer-events:none}
 #settingsBtn{position:absolute;top:12px;right:12px;z-index:15;background:none;border:none;color:#fff;font-size:1.8em;cursor:pointer;opacity:0.5}
 #settingsBtn:hover{opacity:1}
@@ -67,6 +73,9 @@ canvas{display:block;width:100%;height:100%}
 .lang-btn.active{border-color:#fc0;color:#fc0}
 .settings-section{border-top:1px solid #333;padding-top:15px;margin-top:15px;width:80%;text-align:center}
 .settings-section h3{color:#fc0;font-size:1em;margin-bottom:10px}
+#installBanner{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);z-index:15;background:rgba(0,255,255,0.1);border:2px solid #0ff;border-radius:12px;padding:12px 24px;display:none;align-items:center;gap:12px;cursor:pointer}
+#installBanner .inst-text{color:#0ff;font-size:0.9em}
+#installBanner .inst-close{color:#888;font-size:1.2em;cursor:pointer;padding:0 4px}
 </style>
 </head>
 <body>
@@ -85,6 +94,7 @@ canvas{display:block;width:100%;height:100%}
   <div id="msg"></div>
   <button id="settingsBtn" onclick="openSettings()">&#9881;</button>
   <a id="coffeeLink" href="https://buymeacoffee.com/Snail3d" target="_blank">&#9749; Buy me a coffee</a>
+  <div id="installBanner" onclick="installPWA()"><span class="inst-text" id="installText">Install App</span><span class="inst-close" onclick="event.stopPropagation();dismissInstall()">&times;</span></div>
 </div>
 <div id="wait">
   <div class="status" id="waitText"></div>
@@ -803,6 +813,26 @@ function wifiDisconnect(){
   x.timeout = 3000;
   x.onload = function(){ refreshWifiStatus(); document.getElementById('wifiMsg').textContent = T('disconnected'); };
   x.send();
+}
+
+// === PWA ===
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').style.display = 'flex';
+});
+function installPWA(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(){ deferredPrompt = null; document.getElementById('installBanner').style.display = 'none'; });
+}
+function dismissInstall(){
+  document.getElementById('installBanner').style.display = 'none';
+  deferredPrompt = null;
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(function(){});
 }
 
 // === INIT ===

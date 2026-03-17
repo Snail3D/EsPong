@@ -95,6 +95,35 @@ void WebServer::begin(GameManager& game, ScoreManager& scores, WiFiManager& wifi
         request->send(200, "text/plain", "ok");
     });
 
+    // --- PWA endpoints ---
+    _server.on("/manifest.json", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->send(200, "application/json",
+            "{\"name\":\"JASIU PONG\",\"short_name\":\"Pong\","
+            "\"start_url\":\"/\",\"display\":\"fullscreen\","
+            "\"orientation\":\"portrait\","
+            "\"background_color\":\"#0a0a2e\",\"theme_color\":\"#0a0a2e\","
+            "\"icons\":[{\"src\":\"/icon.svg\",\"sizes\":\"any\",\"type\":\"image/svg+xml\",\"purpose\":\"any\"}]}");
+    });
+
+    _server.on("/icon.svg", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->send(200, "image/svg+xml",
+            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
+            "<rect width='100' height='100' rx='20' fill='#0a0a2e'/>"
+            "<text x='50' y='42' text-anchor='middle' font-size='40'>&#127955;</text>"
+            "<text x='50' y='82' text-anchor='middle' font-size='40'>&#127952;</text>"
+            "</svg>");
+    });
+
+    _server.on("/sw.js", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->send(200, "application/javascript",
+            "const CACHE='pong-v1';"
+            "self.addEventListener('install',e=>{self.skipWaiting();});"
+            "self.addEventListener('activate',e=>{e.waitUntil(clients.claim());});"
+            "self.addEventListener('fetch',e=>{"
+            "e.respondWith(fetch(e.request).then(r=>{return r;}).catch(()=>caches.match(e.request)));"
+            "});");
+    });
+
     // Tell phones "internet works" so captive portal popup doesn't hijack us
     _server.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* r) { r->send(204); });
     _server.on("/gen_204", HTTP_GET, [](AsyncWebServerRequest* r) { r->send(204); });
